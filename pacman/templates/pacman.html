@@ -1,0 +1,1465 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Marty-Marmot</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/pacman.css' %}">
+    <script src="{% static 'jQuery/jquery-3.3.1.min.js' %}"></script>
+    <script src="{% static 'js/underscore-min.js' %}"></script>
+</head>
+<body>
+
+<div id="loading">
+    <h1>Marty-Marmot Arcade</h1>
+</div>
+
+<div  class="page">
+	<div id="container">
+	    <div class="page_content">
+	    	<div class="cd-popup" role="alert">
+	    		<div class="cd-popup-container">
+	    			<p id="gameOver">Game Over</p>
+	    			<ul class="cd-buttons">
+	    				<li><a id="cd-popup-yesToPlayAgain" href="/pacman/pacman">Yes</a></li>
+	    				<li><a id="cd-popup-noToPlayAgain" href="/">No</a></li>
+	    			</ul>
+	    			<a href="/" class="cd-popup-close img-replace">Close</a>
+	    		</div>
+	    	</div>
+	        <div id="scoreLivesDisplay">
+	            <span id="currentScoreDisplay">
+	                SCORE <span id="updateScore">0</span>
+                </span>
+                <a class="btn btn-secondary" href="/">Home</a>
+	            <span id="livesLeft">
+	                <span id="life1" class="pacmanLeft315"></span>
+	                <span id="life2" class="pacmanLeft315"></span>
+	                <span id="life3" class="pacmanLeft315"></span>
+	                <span id="life4" class="pacmanLeft315"></span>
+	            </span>
+	        </div>
+	        <div class="ijkl"></div>
+	        <a class="playAgain">NEW GAME</a>
+	    </div>
+	</div>
+</div>
+</body>
+
+<script type="text/javascript">
+	function randomIntFromInterval(min, max)
+	{
+	    return Math.floor(Math.random() * (max - min + 1) + min);
+	}
+
+	class Queue {
+        constructor() {
+            this.items = [];
+        }
+        isEmpty() {
+            return this.items.length === 0;
+        }
+        enqueue(elements) {
+            this.items.push(elements);
+        }
+        dequeue() {
+            if (this.isEmpty())
+                return "Underflow";
+            return this.items.shift();
+        }
+        front() {
+            if (this.isEmpty())
+                return "No elements in Queue";
+            return this.items[0];
+        }
+        printQueue() {
+            var str = "";
+            for(var i = 0; i < this.items.length; i++)
+                str += "(" + this.items[0].pt.x.toString() + ", " + this.items[0].pt.y.toString() + "), " + this.items[0].dist + "; ";
+            return str;
+        }
+    }
+
+    class Ghost {
+        constructor() {
+            this.name = "";
+            this.direction = {};
+            this.position = {};
+            this.classActive = "";
+            this.speed = 300;
+            this.originalSpeed = this.speed;
+            this.panicMode = false;
+            this.panicModeGettingOver = false;
+            this.isEatenByPacman = false;
+            this.leftHouse = false;
+        }
+        move(matrix, matrixCopy, pacmanPos, targetPos, ghost1, ghost2, ghost3) {
+            if (isGameOver(pacmanPos, this, ghost1, ghost2, ghost3) && (this.panicMode === false)) {
+                clearAllIntervalsAndTimeouts();
+    			if (window.livesLeft.childElementCount === 1) {
+    				window.livesLeft.removeChild(livesLeft.lastElementChild);
+					$('.cd-popup').addClass('is-visible');
+                	gameOverParagraph.innerHTML = "<h1>Game Over</h1><br><h4>SCORE: " + window.currentScore + "</h4><br><h3>Play again?</h3>";
+    			}
+    			else
+    				setTimeout(main, 0);
+            }
+            else if (this.panicMode === true && this.isEatenByPacman === false)
+                this.setIsEatenByPacman((this.position.x === pacmanPos.x && this.position.y === pacmanPos.y) || this.isEatenByPacman);
+
+            var i, adjPosArray = [], adjPos = {}, rowNum = [-1, 0, 0, 1], colNum = [0, -1, 1, 0];
+            for (i = 0; i < 4; i++) {
+                if (this.direction.x === -1 * rowNum[i] && this.direction.y === -1 * colNum[i])
+                    continue;
+                var row = this.position.x + rowNum[i];
+                var col = this.position.y + colNum[i];
+                if (col === COL_MAX - 1 && isValidClass(matrix[row][col]) && i === 2) {
+                    col = 0;
+                    adjPos = {pt: {x: row, y: col}, dist: Math.sqrt(Math.pow(targetPos.x - row, 2) + Math.pow(targetPos.y - col, 2))};
+                    adjPosArray.push(adjPos);
+                }
+                else if (col === 0 && isValidClass(matrix[row][col]) && i === 1) {
+                    col = COL_MAX - 1;
+                    adjPos = {pt: {x: row, y: col}, dist: Math.sqrt(Math.pow(targetPos.x - row, 2) + Math.pow(targetPos.y - col, 2))};
+                    adjPosArray.push(adjPos);
+                }
+                if (isValid(row, col) === true && (isValidClass(matrix[row][col]) || matrix[row][col] === 'H8'))  {
+                    adjPos = {pt: {x: row, y: col}, dist: Math.sqrt(Math.pow(targetPos.x - row, 2) + Math.pow(targetPos.y - col, 2)) };
+                    adjPosArray.push(adjPos);
+                }
+            }
+            var newPos = {};
+            if (adjPosArray.length === 3)
+                newPos = adjPosArray[0].dist < adjPosArray[1].dist ? (adjPosArray[0].dist < adjPosArray[2].dist ? adjPosArray[0].pt : adjPosArray[2].pt) : (adjPosArray[1].dist < adjPosArray[2].dist ? adjPosArray[1].pt : adjPosArray[2].pt);
+            else if (adjPosArray.length === 2)
+                newPos = adjPosArray[0].dist < adjPosArray[1].dist ? adjPosArray[0].pt : adjPosArray[1].pt;
+            else if (adjPosArray.length === 1 )
+                newPos = adjPosArray[0].pt;
+            this.setDirection(newPos.x - this.position.x, newPos.y - this.position.y);
+            var otherGhostDirection = {}, updatedOtherGhostDirection = {}, otherGhostPos = {}, updatedOtherGhostPos = {};
+            var ghostArray = [ghost1, ghost2, ghost3];
+            var ghostCollision = false;
+            for(i = 0; i < 3; i++)
+            {
+                var currGhost = ghostArray[i];
+                if (newPos.x === currGhost.getPos().x && newPos.y === currGhost.getPos().y && !this.isEatenByPacman) {
+                    ghostCollision = true;
+                    if (isValidClass(matrix[this.position.x + this.direction.x * -1][this.position.y + this.direction.y * -1]) === true) {
+                        matrixCopy[this.position.x][this.position.y] = matrix[this.position.x][this.position.y];
+                        drawLevelParts(matrixCopy[this.position.x][this.position.y], {x: this.position.x, y: this.position.y});
+                        this.setDirection(this.direction.x * -1, this.direction.y * -1);
+                        this.setPos(this.position.x + this.direction.x, this.position.y + this.direction.y);
+                        matrixCopy[this.position.x][this.position.y] = this.classActive;
+                        drawLevelParts(matrixCopy[this.position.x][this.position.y], {x: this.position.x, y: this.position.y});
+                    }
+
+                    otherGhostDirection = {x: currGhost.getDirection().x, y: currGhost.getDirection().y};
+                    otherGhostPos = {x: currGhost.getPos().x, y: currGhost.getPos().y};
+                    updatedOtherGhostDirection = {x: otherGhostDirection.x * -1, y: otherGhostDirection.y * -1};
+                    updatedOtherGhostPos = {x: otherGhostPos.x + updatedOtherGhostDirection.x, y: otherGhostPos.y + updatedOtherGhostDirection.y};
+                    if (isValidClass(matrix[updatedOtherGhostPos.x][updatedOtherGhostPos.y]) === true) {
+                        currGhost.setDirection(updatedOtherGhostDirection.x, updatedOtherGhostDirection.y);
+                        currGhost.setPos(updatedOtherGhostPos.x, updatedOtherGhostPos.y);
+                        matrixCopy[otherGhostPos.x][otherGhostPos.y] = matrix[otherGhostPos.x][otherGhostPos.y];
+                        matrixCopy[updatedOtherGhostPos.x][updatedOtherGhostPos.y] = currGhost.getClass();
+                        drawLevelParts(matrixCopy[otherGhostPos.x][otherGhostPos.y], {x: otherGhostPos.x, y: otherGhostPos.y});
+                        drawLevelParts(matrixCopy[updatedOtherGhostPos.x][updatedOtherGhostPos.y], {x: updatedOtherGhostPos.x, y: updatedOtherGhostPos.y});
+                    }
+                }
+            }
+            if (ghostCollision === false) {
+                matrixCopy[this.position.x][this.position.y] = matrix[this.position.x][this.position.y];
+                matrixCopy[newPos.x][newPos.y] = this.classActive;
+                drawLevelParts(matrixCopy[this.position.x][this.position.y], {x: this.position.x, y: this.position.y});
+                drawLevelParts(matrixCopy[newPos.x][newPos.y], {x: newPos.x, y: newPos.y});
+                this.position = newPos;
+            }
+        }
+        setDirection(x, y) {
+            this.direction.x = x;
+            this.direction.y = y;
+            if (this.isEatenByPacman === true) {
+                if (x === -1 && y === 0)
+                    this.classActive = "eyesUp";
+                else if (x === 1 && y === 0)
+                    this.classActive = "eyesDown";
+                else if (x === 0 && y === -1)
+                    this.classActive = "eyesLeft";
+                else if (x === 0 && y === 1)
+                    this.classActive = "eyesRight";
+            }
+            else if (this.panicMode === false) {
+                if (x === -1 && y === 0)
+                    this.classActive = this.name + "Up" + (1.5 + window.alternateGhostAnimate).toString();
+                else if (x === 1 && y === 0)
+                    this.classActive = this.name + "Down" + (1.5 + window.alternateGhostAnimate).toString();
+                else if (x === 0 && y === -1)
+                    this.classActive = this.name + "Left" + (1.5 + window.alternateGhostAnimate).toString();
+                else if (x === 0 && y === 1)
+                    this.classActive = this.name + "Right" + (1.5 + window.alternateGhostAnimate).toString();
+            }
+            else if (this.panicMode === true) {
+	            if (x === -1 && y === 0)
+	                this.classActive = "ghostBlue" + (1.5 + window.alternateGhostAnimate).toString();
+	            else if (x === 1 && y === 0)
+	                this.classActive = "ghostBlue" + (1.5 + window.alternateGhostAnimate).toString();
+	            else if (x === 0 && y === -1)
+	                this.classActive = "ghostBlue" + (1.5 + window.alternateGhostAnimate).toString();
+	            else if (x === 0 && y === 1)
+	                this.classActive = "ghostBlue" + (1.5 + window.alternateGhostAnimate).toString();
+                window.alternateGhostAnimate =  window.alternateGhostAnimate * -1;
+            }
+        }
+        setPos(x, y) {
+            this.position.x = x;
+            this.position.y = y;
+        }
+        setSpeed(speed) {
+            this.speed = speed;
+            this.originalSpeed = this.speed;
+        }
+        setName(name) {
+            this.name = name;
+        }
+        setClass(classActive) {
+            this.classActive = classActive;
+        }
+        setIsEatenByPacman(booleanAnswer) {
+        	var oldIsEatenByPacman = this.isEatenByPacman;
+            this.isEatenByPacman = (booleanAnswer === true);
+            if (oldIsEatenByPacman === false && this.isEatenByPacman === true) {
+            	var pos1 = {}, pos2 = {}, pos3 = {};
+            	pos1 = {x: this.position.x, y: this.position.y - 1};
+        		pos2 = {x: this.position.x, y: this.position.y};
+        		pos3 = {x: this.position.x, y: this.position.y + 1};
+        		var pos1Div = document.getElementById(pos1.x + '_' + pos1.y);
+        		var pos2Div = document.getElementById(pos2.x + '_' + pos2.y);
+        		var pos3Div = document.getElementById(pos3.x + '_' + pos3.y);
+        		pos1Div.innerHTML = "1";
+        		pos2Div.innerHTML = "0";
+        		pos3Div.innerHTML = "0";
+            	setTimeout(function() {
+            		pos1Div.innerHTML = "";
+	        		pos2Div.innerHTML = "";
+	        		pos3Div.innerHTML = "";
+            	}, 400, pos1Div, pos2Div, pos3Div);
+            	currentScore += 100;
+            }
+            if (this.isEatenByPacman === true && this.panicMode === true)
+                this.speed = 120;
+            else if (this.isEatenByPacman === false && this.panicMode === true)
+                this.speed = 280;
+            else
+                this.speed = this.originalSpeed;
+        }
+        setPanicMode(booleanAnswer) {
+        	this.panicMode = (booleanAnswer === true);
+        	if (this.panicMode === false)
+        		this.speed = this.originalSpeed;
+        }
+        setPanicModeGettingOver(booleanAnswer) {
+        	this.panicModeGettingOver = (booleanAnswer === true);
+        }
+    	setLeftHouse(booleanAnswer) {
+        	this.leftHouse = (booleanAnswer === true);
+        }
+        getIsEatenByPacman() {
+            return this.isEatenByPacman;
+        }
+        getDirection() {
+            return this.direction;
+        }
+        getPos() {
+            return this.position;
+        }
+        getClass() {
+            return this.classActive;
+        }
+        getSpeed() {
+            return this.speed;
+        }
+        getPanicMode() {
+        	return this.panicMode;
+        }
+        getPanicModeGettingOver() {
+        	return this.panicModeGettingOver;
+        }
+        getLeftHouse() {
+        	return this.leftHouse;
+        }
+    }
+    count = 0;
+    timeouts = [];
+    str = "";
+    b = document.getElementsByTagName("body")[0];
+    gameOverParagraph = document.getElementById("gameOver");
+    updateScore = document.getElementById("updateScore");
+    livesLeft = document.getElementById("livesLeft");
+    ROW_MAX = 31;
+    COL_MAX = 28;
+    matrix = levelGenerator(1)[0];
+    matrixCopy = levelGenerator(1)[0];
+    numberOfPillsLeft = levelGenerator(1)[1];
+    pacmanSpeed = 150;
+    pacmanPos = {x: 23, y: 14};
+    pacmanDirection = {x: -1, y: 0};
+    pacmanMouthAngle = 360;
+    angleDiff = 45;
+    pacmanTimeout = null;
+    currentScore = 0;
+    currentLevel = 1;
+    totalNumberOfLevels = 6;
+
+    blinky = new Ghost();
+    blinky.setName("blinky");
+    blinky.setPos(15, 12);//15, 14
+    blinky.setDirection(-1, 0);
+    blinky.setSpeed(165);
+    blinkyTimeout = null;
+
+    inky = new Ghost();
+    inky.setName("inky");
+    inky.setPos(15, 13);
+    inky.setDirection(-1, 0);
+    inky.setSpeed(165);
+    inkyTimeout = null;
+
+    pinky = new Ghost();
+    pinky.setName("pinky");
+    pinky.setPos(15, 14);
+    pinky.setDirection(-1, 0);
+    pinky.setSpeed(165);
+    pinkyTimeout = null;
+
+    clyde = new Ghost();
+    clyde.setName("clyde");
+    clyde.setPos(15, 15);
+    clyde.setDirection(-1, 0);
+    clyde.setSpeed(165);
+    clydeTimeout = null;
+
+    panicColour = "White";
+    panicTimeout = null;
+    panicModeGettingOverTimeout = null;
+    chaseMode = true;// chase pacman
+    chaseModeDuration = 20000;
+    S1 = false;// same as scatterMode, make false to turn on chase mode
+    S2 = true;// same as chaseMode, make false to turn on scatter mode
+    chaseTimeout = null;
+    scatterMode = false;// loop around their corners
+    scatterModeDuration = 7000;
+    scatterTimeout = null;
+    alternateGhostAnimate = 0.5;
+    mainGhostPacmanTimeout = null;
+	newPacmanDirection = null;
+
+    rowNum = [-1, 0, 0, 1];
+    colNum = [0, -1, 1, 0];
+
+    function levelGenerator(level) {
+        if (level === 1) {
+            return ([[
+                ['B1', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'E7', 'E1', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B7'],
+                ['B6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'b2', 'b6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'B2'],
+                ['B6', 'pp', 'b1', 'b8', 'b8', 'b7', 'pp', 'b1', 'b8', 'b8', 'b8', 'b7', 'pp', 'b2', 'b6', 'pp', 'b1', 'b8', 'b8', 'b8', 'b7', 'pp', 'b1', 'b8', 'b8', 'b7', 'pp', 'B2'],
+                ['B6', 'PP', 'b2', 'ze', 'ze', 'b6', 'pp', 'b2', 'ze', 'ze', 'ze', 'b6', 'pp', 'b2', 'b6', 'pp', 'b2', 'ze', 'ze', 'ze', 'b6', 'pp', 'b2', 'ze', 'ze', 'b6', 'PP', 'B2'],
+                ['B6', 'pp', 'b3', 'b4', 'b4', 'b5', 'pp', 'b3', 'b4', 'b4', 'b4', 'b5', 'pp', 'b3', 'b5', 'pp', 'b3', 'b4', 'b4', 'b4', 'b5', 'pp', 'b3', 'b4', 'b4', 'b5', 'pp', 'B2'],
+                ['B6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'B2'],
+                ['B6', 'pp', 'b1', 'b8', 'b8', 'b7', 'pp', 'b1', 'b7', 'pp', 'b1', 'b8', 'b8', 'b8', 'b8', 'b8', 'b8', 'b7', 'pp', 'b1', 'b7', 'pp', 'b1', 'b8', 'b8', 'b7', 'pp', 'B2'],
+                ['B6', 'pp', 'b3', 'b4', 'b4', 'b5', 'pp', 'b2', 'b6', 'pp', 'b3', 'b4', 'b4', 'b7', 'b1', 'b4', 'b4', 'b5', 'pp', 'b2', 'b6', 'pp', 'b3', 'b4', 'b4', 'b5', 'pp', 'B2'],
+                ['B6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'b2', 'b6', 'pp', 'pp', 'pp', 'pp', 'b2', 'b6', 'pp', 'pp', 'pp', 'pp', 'b2', 'b6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'B2'],
+                ['B3', 'B8', 'B8', 'B8', 'B8', 'b7', 'pp', 'b2', 'b3', 'b8', 'b8', 'b7', 'pp', 'b2', 'b6', 'pp', 'b1', 'b8', 'b8', 'b5', 'b6', 'pp', 'b1', 'B8', 'B8', 'B8', 'B8', 'B5'],
+                ['ze', 'ze', 'ze', 'ze', 'ze', 'B6', 'pp', 'b2', 'b1', 'b4', 'b4', 'b5', 'pp', 'b3', 'b5', 'pp', 'b3', 'b4', 'b4', 'b7', 'b6', 'pp', 'B2', 'ze', 'ze', 'ze', 'ze', 'ze'],
+                ['ze', 'ze', 'ze', 'ze', 'ze', 'B6', 'pp', 'b2', 'b6', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'b2', 'b6', 'pp', 'B2', 'ze', 'ze', 'ze', 'ze', 'ze'],
+                ['ze', 'ze', 'ze', 'ze', 'ze', 'B6', 'pp', 'b2', 'b6', 'ze', 'H1', 'B8', 'L8', 'H8', 'H8', 'R8', 'B8', 'H7', 'ze', 'b2', 'b6', 'pp', 'B2', 'ze', 'ze', 'ze', 'ze', 'ze'],
+                ['B4', 'B4', 'B4', 'B4', 'B4', 'b5', 'pp', 'b3', 'b5', 'ze', 'B2', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'B6', 'ze', 'b3', 'b5', 'pp', 'b3', 'B4', 'B4', 'B4', 'B4', 'B4'],
+                ['ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'pp', 'ze', 'ze', 'ze', 'B2', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'B6', 'ze', 'ze', 'ze', 'pp', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze'],
+                ['B8', 'B8', 'B8', 'B8', 'B8', 'b7', 'pp', 'b1', 'b7', 'ze', 'B2', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'B6', 'ze', 'b1', 'b7', 'pp', 'b1', 'B8', 'B8', 'B8', 'B8', 'B8'],
+                ['ze', 'ze', 'ze', 'ze', 'ze', 'B6', 'pp', 'b2', 'b6', 'ze', 'H3', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'H5', 'ze', 'b2', 'b6', 'pp', 'B2', 'ze', 'ze', 'ze', 'ze', 'ze'],
+                ['ze', 'ze', 'ze', 'ze', 'ze', 'B6', 'pp', 'b2', 'b6', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'b2', 'b6', 'pp', 'B2', 'ze', 'ze', 'ze', 'ze', 'ze'],
+                ['ze', 'ze', 'ze', 'ze', 'ze', 'B6', 'pp', 'b2', 'b6', 'ze', 'b1', 'b8', 'b8', 'b8', 'b8', 'b8', 'b8', 'b7', 'ze', 'b2', 'b6', 'pp', 'B2', 'ze', 'ze', 'ze', 'ze', 'ze'],
+                ['B1', 'B4', 'B4', 'B4', 'B4', 'b5', 'pp', 'b3', 'b5', 'ze', 'b3', 'b4', 'b4', 'b7', 'b1', 'b4', 'b4', 'b5', 'ze', 'b3', 'b5', 'pp', 'b3', 'B4', 'B4', 'B4', 'B4', 'B7'],
+                ['B6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'b2', 'b6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'B2'],
+                ['B6', 'pp', 'b1', 'b8', 'b8', 'b7', 'pp', 'b1', 'b8', 'b8', 'b8', 'b7', 'pp', 'b2', 'b6', 'pp', 'b1', 'b8', 'b8', 'b8', 'b7', 'pp', 'b1', 'b8', 'b8', 'b7', 'pp', 'B2'],
+                ['B6', 'pp', 'b3', 'b4', 'b7', 'b6', 'pp', 'b3', 'b4', 'b4', 'b4', 'b5', 'pp', 'b3', 'b5', 'pp', 'b3', 'b4', 'b4', 'b4', 'b5', 'pp', 'b2', 'b1', 'b4', 'b5', 'pp', 'B2'],
+                ['B6', 'PP', 'pp', 'pp', 'b2', 'b6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'b2', 'b6', 'pp', 'pp', 'PP', 'B2'],
+                ['E3', 'b8', 'b7', 'pp', 'b2', 'b6', 'pp', 'b1', 'b7', 'pp', 'b1', 'b8', 'b8', 'b8', 'b8', 'b8', 'b8', 'b7', 'pp', 'b1', 'b7', 'pp', 'b2', 'b6', 'pp', 'b1', 'b8', 'E5'],
+                ['C8', 'b4', 'b5', 'pp', 'b3', 'b5', 'pp', 'b2', 'b6', 'pp', 'b3', 'b4', 'b4', 'b7', 'b1', 'b4', 'b4', 'b5', 'pp', 'b2', 'b6', 'pp', 'b3', 'b5', 'pp', 'b3', 'b4', 'C9'],
+                ['B6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'b2', 'b6', 'pp', 'pp', 'pp', 'pp', 'b2', 'b6', 'pp', 'pp', 'pp', 'pp', 'b2', 'b6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'B2'],
+                ['B6', 'pp', 'b1', 'b8', 'b8', 'b8', 'b8', 'b5', 'b3', 'b8', 'b8', 'b7', 'pp', 'b2', 'b6', 'pp', 'b1', 'b8', 'b8', 'b5', 'b3', 'b8', 'b8', 'b8', 'b8', 'b7', 'pp', 'B2'],
+                ['B6', 'pp', 'b3', 'b4', 'b4', 'b4', 'b4', 'b4', 'b4', 'b4', 'b4', 'b5', 'pp', 'b3', 'b5', 'pp', 'b3', 'b4', 'b4', 'b4', 'b4', 'b4', 'b4', 'b4', 'b4', 'b5', 'pp', 'B2'],
+                ['B6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'B2'],
+                ['B3', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B5']
+            ], 250]);//level structure and number of pills in the structure('pp' and 'PP')
+        }
+        if (level === 2) {
+            return ([[
+                ['B1', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B7'],
+                ['B6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'B2'],
+                ['B6', 'pp', 'b1', 'b8', 'b8', 'b8', 'b8', 'b8', 'b7', 'pp', 'b1', 'b8', 'b8', 'b8', 'b8', 'b8', 'b8', 'b7', 'pp', 'b1', 'b8', 'b8', 'b8', 'b8', 'b8', 'b7', 'pp', 'B2'],
+                ['B6', 'PP', 'b2', 'ze', 'ze', 'ze', 'ze', 'ze', 'b6', 'pp', 'b2', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'b6', 'pp', 'b2', 'ze', 'ze', 'ze', 'ze', 'ze', 'b6', 'PP', 'B2'],
+                ['B6', 'pp', 'b3', 'b4', 'b4', 'b4', 'b4', 'b4', 'b5', 'pp', 'b3', 'b4', 'b4', 'b7', 'b1', 'b4', 'b4', 'b5', 'pp', 'b3', 'b4', 'b4', 'b4', 'b4', 'b4', 'b5', 'pp', 'B2'],
+                ['B6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'b2', 'b6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'B2'],
+                ['B6', 'pp', 'b1', 'b8', 'b8', 'b7', 'pp', 'b1', 'b7', 'pp', 'b1', 'b7', 'pp', 'b2', 'b6', 'pp', 'b1', 'b7', 'pp', 'b1', 'b7', 'pp', 'b1', 'b8', 'b8', 'b7', 'pp', 'B2'],
+                ['B6', 'pp', 'b3', 'b4', 'b4', 'b5', 'pp', 'B2', 'B6', 'pp', 'b2', 'b6', 'pp', 'b2', 'b6', 'pp', 'b2', 'b6', 'pp', 'B2', 'B6', 'pp', 'b3', 'b4', 'b4', 'b5', 'pp', 'B2'],
+                ['B6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'B2', 'B6', 'pp', 'b2', 'b6', 'pp', 'b2', 'b6', 'pp', 'b2', 'b6', 'pp', 'B2', 'B6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'B2'],
+                ['B3', 'B8', 'B8', 'B8', 'B8', 'b7', 'pp', 'B2', 'B6', 'pp', 'b2', 'b6', 'pp', 'b2', 'b6', 'pp', 'b2', 'b6', 'pp', 'B2', 'B6', 'pp', 'b1', 'B8', 'B8', 'B8', 'B8', 'B5'],
+                ['ze', 'ze', 'ze', 'ze', 'ze', 'B6', 'pp', 'B2', 'B6', 'pp', 'b3', 'b5', 'pp', 'b3', 'b5', 'pp', 'b3', 'b5', 'pp', 'B2', 'B6', 'pp', 'B2', 'ze', 'ze', 'ze', 'ze', 'ze'],
+                ['B4', 'B4', 'B4', 'B4', 'B4', 'b5', 'pp', 'B2', 'B6', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'B2', 'B6', 'pp', 'b3', 'B4', 'B4', 'B4', 'B4', 'B4'],
+                ['ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'B2', 'B6', 'ze', 'H1', 'B8', 'L8', 'H8', 'H8', 'R8', 'B8', 'H7', 'ze', 'B2', 'B6', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze'],
+                ['B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B1', 'B6', 'ze', 'B2', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'B6', 'ze', 'B2', 'B7', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8'],
+                ['ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'b6', 'B6', 'ze', 'B2', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'B6', 'ze', 'B2', 'B2', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze'],
+                ['B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B3', 'B6', 'ze', 'B2', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'B6', 'ze', 'B2', 'B5', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4'],
+                ['ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'B2', 'B6', 'ze', 'H3', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'H5', 'ze', 'B2', 'B6', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze'],
+                ['B8', 'B8', 'B8', 'B8', 'B8', 'b7', 'pp', 'B2', 'B6', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'B2', 'B6', 'pp', 'b1', 'B8', 'B8', 'B8', 'B8', 'B8'],
+                ['ze', 'ze', 'ze', 'ze', 'ze', 'B6', 'pp', 'B2', 'B3', 'B8', 'B8', 'b7', 'ze', 'b1', 'b7', 'ze', 'b1', 'B8', 'B8', 'B5', 'B6', 'pp', 'B2', 'ze', 'ze', 'ze', 'ze', 'ze'],
+                ['B1', 'B4', 'B4', 'B4', 'B4', 'b5', 'pp', 'b3', 'B4', 'B4', 'B4', 'b5', 'ze', 'b3', 'b5', 'ze', 'b3', 'B4', 'B4', 'B4', 'b5', 'pp', 'b3', 'B4', 'B4', 'B4', 'B4', 'B7'],
+                ['B6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'B2'],
+                ['B6', 'pp', 'b1', 'b8', 'b8', 'b8', 'b8', 'b8', 'b7', 'pp', 'b1', 'b8', 'b8', 'b8', 'b8', 'b8', 'b8', 'b7', 'pp', 'b1', 'b8', 'b8', 'b8', 'b8', 'b8', 'b7', 'pp', 'B2'],
+                ['B6', 'pp', 'b3', 'b4', 'b4', 'b4', 'b4', 'b7', 'b6', 'pp', 'b3', 'b4', 'b4', 'b4', 'b4', 'b4', 'b4', 'b5', 'pp', 'b2', 'b1', 'b4', 'b4', 'b4', 'b4', 'b5', 'pp', 'B2'],
+                ['B6', 'PP', 'pp', 'pp', 'pp', 'pp', 'pp', 'b2', 'b6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'b2', 'b6', 'pp', 'pp', 'pp', 'pp', 'pp', 'PP', 'B2'],
+                ['E3', 'b8', 'b7', 'pp', 'b1', 'b7', 'pp', 'b2', 'b6', 'pp', 'b1', 'b7', 'pp', 'b1', 'b7', 'pp', 'b1', 'b7', 'pp', 'b2', 'b6', 'pp', 'b1', 'b7', 'pp', 'b1', 'b8', 'E5'],
+                ['C8', 'b4', 'b5', 'pp', 'b3', 'b5', 'pp', 'b3', 'b5', 'pp', 'b2', 'b6', 'pp', 'B2', 'B6', 'pp', 'b2', 'b6', 'pp', 'b3', 'b5', 'pp', 'b3', 'b5', 'pp', 'b3', 'b4', 'C9'],
+                ['B6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'b2', 'b6', 'pp', 'B2', 'B6', 'pp', 'b2', 'b6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'B2'],
+                ['B6', 'pp', 'b1', 'b8', 'b8', 'b8', 'b8', 'b8', 'b8', 'b8', 'b5', 'b6', 'pp', 'B2', 'B6', 'pp', 'b2', 'b3', 'b8', 'b8', 'b8', 'b8', 'b8', 'b8', 'b8', 'b7', 'pp', 'B2'],
+                ['B6', 'pp', 'b3', 'b4', 'b4', 'b4', 'b4', 'b4', 'b4', 'b4', 'b4', 'b5', 'pp', 'B2', 'B6', 'pp', 'b3', 'b4', 'b4', 'b4', 'b4', 'b4', 'b4', 'b4', 'b4', 'b5', 'pp', 'B2'],
+                ['B6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'B2', 'B6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'B2'],
+                ['B3', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B5', 'B3', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B5']
+            ], 238]);
+        }
+        if (level === 3) {
+            return ([[
+                ['B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'E7', 'E1', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4'],
+                ['ze', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'b2', 'b6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'ze'],
+                ['b7', 'pp', 'b1', 'B8', 'B8', 'b7', 'pp', 'b1', 'B8', 'B8', 'B8', 'b7', 'pp', 'b2', 'b6', 'pp', 'b1', 'B8', 'B8', 'B8', 'b7', 'pp', 'b1', 'B8', 'B8', 'b7', 'pp', 'b1'],
+                ['B6', 'PP', 'B2', 'ze', 'ze', 'B6', 'pp', 'B2', 'ze', 'ze', 'ze', 'B6', 'pp', 'b2', 'b6', 'pp', 'B2', 'ze', 'ze', 'ze', 'B6', 'pp', 'B2', 'ze', 'ze', 'B6', 'PP', 'B2'],
+                ['B6', 'pp', 'B2', 'ze', 'ze', 'B6', 'pp', 'b3', 'B4', 'B4', 'B4', 'b5', 'pp', 'b2', 'b6', 'pp', 'b3', 'B4', 'B4', 'B4', 'b5', 'pp', 'B2', 'ze', 'ze', 'B6', 'pp', 'B2'],
+                ['B6', 'pp', 'B2', 'ze', 'ze', 'B6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'b2', 'b6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'B2', 'ze', 'ze', 'B6', 'pp', 'B2'],
+                ['B6', 'pp', 'B2', 'ze', 'ze', 'B6', 'pp', 'b1', 'b7', 'pp', 'b1', 'b7', 'pp', 'b2', 'b6', 'pp', 'b1', 'b7', 'pp', 'b1', 'b7', 'pp', 'B2', 'ze', 'ze', 'B6', 'pp', 'B2'],
+                ['B6', 'pp', 'b3', 'B4', 'B4', 'b5', 'pp', 'b2', 'b6', 'pp', 'b2', 'b6', 'pp', 'b3', 'b5', 'pp', 'b2', 'b6', 'pp', 'b2', 'b6', 'pp', 'b3', 'B4', 'B4', 'b5', 'pp', 'B2'],
+                ['B6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'b2', 'b6', 'pp', 'b2', 'b6', 'pp', 'pp', 'pp', 'pp', 'b2', 'b6', 'pp', 'b2', 'b6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'B2'],
+                ['B6', 'pp', 'b1', 'B8', 'B8', 'b7', 'pp', 'b2', 'b6', 'pp', 'b2', 'b6', 'pp', 'b1', 'b7', 'pp', 'b2', 'b6', 'pp', 'b2', 'b6', 'pp', 'b1', 'B8', 'B8', 'b7', 'pp', 'B2'],
+                ['B6', 'pp', 'B2', 'ze', 'ze', 'B6', 'pp', 'b2', 'b6', 'pp', 'b3', 'b5', 'pp', 'b3', 'b5', 'pp', 'b3', 'b5', 'pp', 'b2', 'b6', 'pp', 'B2', 'ze', 'ze', 'B6', 'pp', 'B2'],
+                ['B6', 'pp', 'B2', 'ze', 'ze', 'B6', 'pp', 'b2', 'b6', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'b2', 'b6', 'pp', 'B2', 'ze', 'ze', 'B6', 'pp', 'B2'],
+                ['B6', 'pp', 'B2', 'ze', 'ze', 'B6', 'pp', 'b3', 'b5', 'ze', 'H1', 'B8', 'L8', 'H8', 'H8', 'R8', 'B8', 'H7', 'ze', 'b3', 'b5', 'pp', 'B2', 'ze', 'ze', 'B6', 'pp', 'B2'],
+                ['B6', 'pp', 'B2', 'ze', 'ze', 'B6', 'pp', 'pp', 'pp', 'ze', 'B2', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'B6', 'ze', 'pp', 'pp', 'pp', 'B2', 'ze', 'ze', 'B6', 'pp', 'B2'],
+                ['B6', 'pp', 'B2', 'ze', 'ze', 'B6', 'pp', 'b1', 'b7', 'ze', 'B2', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'B6', 'ze', 'b1', 'b7', 'pp', 'B2', 'ze', 'ze', 'B6', 'pp', 'B2'],
+                ['B6', 'pp', 'B2', 'ze', 'ze', 'B6', 'pp', 'b2', 'b6', 'ze', 'B2', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'B6', 'ze', 'b2', 'b6', 'pp', 'B2', 'ze', 'ze', 'B6', 'pp', 'B2'],
+                ['B6', 'pp', 'b3', 'B4', 'B4', 'b5', 'pp', 'b2', 'b6', 'ze', 'H3', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'H5', 'ze', 'b2', 'b6', 'pp', 'b3', 'B4', 'B4', 'b5', 'pp', 'B2'],
+                ['B6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'b2', 'b6', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'b2', 'b6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'B2'],
+                ['E3', 'b8', 'b8', 'b8', 'b8', 'b7', 'pp', 'b2', 'b3', 'b8', 'b8', 'b8', 'b8', 'b8', 'b8', 'b8', 'b8', 'b8', 'b8', 'b5', 'b6', 'pp', 'b1', 'b8', 'b8', 'b8', 'b8', 'E5'],
+                ['C8', 'b4', 'b4', 'b4', 'b4', 'b5', 'pp', 'b3', 'b4', 'b4', 'b4', 'b4', 'b4', 'b4', 'b4', 'b4', 'b4', 'b4', 'b4', 'b4', 'b5', 'pp', 'b3', 'b4', 'b4', 'b4', 'b4', 'C9'],
+                ['B6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'B2'],
+                ['B6', 'pp', 'b1', 'b8', 'b8', 'b8', 'b8', 'b8', 'b7', 'pp', 'b1', 'b8', 'b8', 'b8', 'b8', 'b8', 'b8', 'b7', 'pp', 'b1', 'b8', 'b8', 'b8', 'b8', 'b8', 'b7', 'pp', 'B2'],
+                ['B6', 'pp', 'b3', 'b4', 'b7', 'b1', 'b8', 'b7', 'b6', 'pp', 'b3', 'b4', 'b4', 'b4', 'b4', 'b4', 'b4', 'b5', 'pp', 'b2', 'b1', 'b8', 'b7', 'b1', 'b4', 'b5', 'pp', 'B2'],
+                ['B6', 'PP', 'pp', 'pp', 'b2', 'b2', 'ze', 'b6', 'b6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'b2', 'b2', 'ze', 'b6', 'b6', 'pp', 'pp', 'PP', 'B2'],
+                ['E3', 'b8', 'b7', 'pp', 'b2', 'b3', 'b4', 'b5', 'b6', 'pp', 'b1', 'b8', 'b8', 'b8', 'b8', 'b8', 'b8', 'b7', 'pp', 'b2', 'b3', 'b4', 'b5', 'b6', 'pp', 'b1', 'b8', 'E5'],
+                ['C8', 'b4', 'b5', 'pp', 'b2', 'b1', 'b8', 'b7', 'b6', 'pp', 'b2', 'b1', 'b8', 'b8', 'b8', 'b8', 'b7', 'b6', 'pp', 'b2', 'b1', 'b8', 'b7', 'b6', 'pp', 'b3', 'b4', 'C9'],
+                ['B6', 'pp', 'pp', 'pp', 'b2', 'b2', 'ze', 'b6', 'b6', 'pp', 'b2', 'b2', 'ze', 'ze', 'ze', 'ze', 'b6', 'b6', 'pp', 'b2', 'b2', 'ze', 'b6', 'b6', 'pp', 'pp', 'pp', 'B2'],
+                ['B6', 'pp', 'b1', 'b8', 'b5', 'b3', 'b4', 'b5', 'b6', 'pp', 'b2', 'b3', 'b4', 'b4', 'b4', 'b4', 'b5', 'b6', 'pp', 'b2', 'b3', 'b4', 'b5', 'b3', 'b8', 'b7', 'pp', 'B2'],
+                ['B6', 'pp', 'b3', 'b4', 'b4', 'b4', 'b4', 'b4', 'b5', 'pp', 'b3', 'b4', 'b4', 'b4', 'b4', 'b4', 'b4', 'b5', 'pp', 'b3', 'b4', 'b4', 'b4', 'b4', 'b4', 'b5', 'pp', 'B2'],
+                ['B6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'B2'],
+                ['B3', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B5']
+            ], 252]);
+        }
+        if (level === 4) {
+            return ([[
+                ['B1', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B7'],
+                ['B6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'B2'],
+                ['B6', 'pp', 'b1', 'b8', 'b8', 'b8', 'b8', 'b8', 'b7', 'pp', 'b1', 'b8', 'b8', 'b8', 'b8', 'b8', 'b8', 'b7', 'pp', 'b1', 'b8', 'b8', 'b8', 'b8', 'b8', 'b7', 'pp', 'B2'],
+                ['B6', 'PP', 'b3', 'b4', 'b4', 'b4', 'b7', 'ze', 'b6', 'pp', 'b2', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'b6', 'pp', 'b2', 'ze', 'b1', 'b4', 'b4', 'b4', 'b5', 'PP', 'B2'],
+                ['B6', 'pp', 'pp', 'pp', 'pp', 'pp', 'b2', 'ze', 'b6', 'pp', 'b2', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'b6', 'pp', 'b2', 'ze', 'b6', 'pp', 'pp', 'pp', 'pp', 'pp', 'B2'],
+                ['B3', 'B8', 'B8', 'B8', 'b7', 'pp', 'b2', 'ze', 'b6', 'pp', 'b2', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'b6', 'pp', 'b2', 'ze', 'b6', 'pp', 'b1', 'B8', 'B8', 'B8', 'B5'],
+                ['ze', 'ze', 'ze', 'ze', 'B6', 'pp', 'b2', 'ze', 'b6', 'pp', 'b2', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'b6', 'pp', 'b2', 'ze', 'b6', 'pp', 'B2', 'ze', 'ze', 'ze', 'ze'],
+                ['B1', 'B4', 'B4', 'B4', 'b5', 'pp', 'b3', 'b4', 'b5', 'pp', 'b3', 'b4', 'b4', 'b4', 'b4', 'b4', 'b4', 'b5', 'pp', 'b3', 'b4', 'b5', 'pp', 'b3', 'B4', 'B4', 'B4', 'B7'],
+                ['B6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'B2'],
+                ['B6', 'pp', 'b1', 'b8', 'b8', 'b8', 'b8', 'b8', 'b7', 'ze', 'b1', 'b8', 'b8', 'b8', 'b8', 'b8', 'b8', 'b7', 'ze', 'b1', 'b8', 'b8', 'b8', 'b8', 'b8', 'b7', 'pp', 'B2'],
+                ['B6', 'pp', 'b2', 'ze', 'ze', 'ze', 'ze', 'ze', 'b6', 'ze', 'b3', 'b4', 'b4', 'b4', 'b4', 'b4', 'b4', 'b5', 'ze', 'b2', 'ze', 'ze', 'ze', 'ze', 'ze', 'b6', 'pp', 'B2'],
+                ['B6', 'pp', 'b2', 'ze', 'ze', 'ze', 'ze', 'ze', 'b6', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'b2', 'ze', 'ze', 'ze', 'ze', 'ze', 'b6', 'pp', 'B2'],
+                ['b5', 'pp', 'b3', 'b4', 'b4', 'b4', 'b4', 'b4', 'b5', 'ze', 'H1', 'B8', 'L8', 'H8', 'H8', 'R8', 'B8', 'H7', 'ze', 'b3', 'b4', 'b4', 'b4', 'b4', 'b4', 'b5', 'pp', 'b3'],
+                ['ze', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'ze', 'B2', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'B6', 'ze', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'ze'],
+                ['B8', 'B8', 'B8', 'b7', 'pp', 'b1', 'b8', 'b8', 'b7', 'ze', 'B2', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'B6', 'ze', 'b1', 'b8', 'b8', 'b7', 'pp', 'b1', 'B8', 'B8', 'B8'],
+                ['ze', 'ze', 'ze', 'B6', 'pp', 'b2', 'ze', 'ze', 'b6', 'ze', 'B2', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'B6', 'ze', 'b2', 'ze', 'ze', 'b6', 'pp', 'B2', 'ze', 'ze', 'ze'],
+                ['ze', 'ze', 'ze', 'B6', 'pp', 'b3', 'b4', 'b4', 'b5', 'ze', 'H3', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'H5', 'ze', 'b3', 'b4', 'b4', 'b5', 'pp', 'B2', 'ze', 'ze', 'ze'],
+                ['ze', 'ze', 'ze', 'B6', 'pp', 'pp', 'pp', 'pp', 'pp', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'pp', 'pp', 'pp', 'pp', 'pp', 'B2', 'ze', 'ze', 'ze'],
+                ['ze', 'ze', 'ze', 'B6', 'pp', 'b1', 'b8', 'b8', 'b8', 'b8', 'b8', 'b7', 'pp', 'b1', 'b7', 'pp', 'b1', 'b8', 'b8', 'b8', 'b8', 'b8', 'b7', 'pp', 'B2', 'ze', 'ze', 'ze'],
+                ['B1', 'B4', 'B4', 'b5', 'pp', 'b3', 'b4', 'b4', 'b4', 'b4', 'b4', 'b5', 'pp', 'b2', 'b6', 'pp', 'b3', 'b4', 'b4', 'b4', 'b4', 'b4', 'b5', 'pp', 'b3', 'B4', 'B4', 'B7'],
+                ['B6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'b2', 'b6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'B2'],
+                ['B6', 'pp', 'b1', 'b7', 'pp', 'b1', 'b7', 'pp', 'b1', 'b8', 'b8', 'b8', 'b8', 'b5', 'b3', 'b8', 'b8', 'b8', 'b8', 'b7', 'pp', 'b1', 'b7', 'pp', 'b1', 'b7', 'pp', 'B2'],
+                ['B6', 'pp', 'b3', 'b5', 'pp', 'b2', 'b6', 'pp', 'b3', 'b4', 'b4', 'b4', 'b4', 'b4', 'b4', 'b4', 'b4', 'b4', 'b4', 'b5', 'pp', 'b2', 'b6', 'pp', 'b3', 'b5', 'pp', 'B2'],
+                ['B6', 'PP', 'pp', 'pp', 'pp', 'b2', 'b6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'b2', 'b6', 'pp', 'pp', 'pp', 'PP', 'B2'],
+                ['E3', 'b8', 'b8', 'b8', 'b8', 'b5', 'b6', 'pp', 'b1', 'b8', 'b8', 'b7', 'pp', 'b1', 'b7', 'pp', 'b1', 'b8', 'b8', 'b7', 'pp', 'b2', 'b3', 'b8', 'b8', 'b8', 'b8', 'E5'],
+                ['C8', 'b4', 'b4', 'b4', 'b4', 'b4', 'b5', 'pp', 'b2', 'b1', 'b7', 'b6', 'pp', 'B2', 'B6', 'pp', 'b2', 'b1', 'b7', 'b6', 'pp', 'b3', 'b4', 'b4', 'b4', 'b4', 'b4', 'C9'],
+                ['B6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'b2', 'b2', 'b6', 'b6', 'pp', 'B2', 'B6', 'pp', 'b2', 'b2', 'b6', 'b6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'B2'],
+                ['B6', 'pp', 'b1', 'b8', 'b8', 'b8', 'b8', 'b8', 'b5', 'b3', 'b5', 'b6', 'pp', 'B2', 'B6', 'pp', 'b2', 'b3', 'b5', 'b3', 'b8', 'b8', 'b8', 'b8', 'b8', 'b7', 'pp', 'B2'],
+                ['B6', 'pp', 'b3', 'b4', 'b4', 'b4', 'b4', 'b4', 'b4', 'b4', 'b4', 'b5', 'pp', 'B2', 'B6', 'pp', 'b3', 'b4', 'b4', 'b4', 'b4', 'b4', 'b4', 'b4', 'b4', 'b5', 'pp', 'B2'],
+                ['B6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'B2', 'B6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'B2'],
+                ['B3', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B5', 'B3', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B5']
+                ],246]);
+        }
+        if (level === 5) {
+            return ([[
+                ['B1', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B7'],
+                ['B6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'B2'],
+                ['B6', 'pp', 'b1', 'b7', 'pp', 'b1', 'b8', 'b8', 'b8', 'b8', 'b8', 'b7', 'pp', 'b1', 'b7', 'pp', 'b1', 'b8', 'b8', 'b8', 'b8', 'b8', 'b7', 'pp', 'b1', 'b7', 'pp', 'B2'],
+                ['B6', 'PP', 'b2', 'b6', 'pp', 'b2', 'b1', 'b8', 'b8', 'b8', 'b7', 'b6', 'pp', 'b2', 'b6', 'pp', 'b2', 'b1', 'b8', 'b8', 'b8', 'b7', 'b6', 'pp', 'b2', 'b6', 'PP', 'B2'],
+                ['B6', 'pp', 'b2', 'b6', 'pp', 'b2', 'b3', 'b4', 'b4', 'b4', 'b5', 'b6', 'pp', 'b2', 'b6', 'pp', 'b2', 'b3', 'b4', 'b4', 'b4', 'b5', 'b6', 'pp', 'b2', 'b6', 'pp', 'B2'],
+                ['B6', 'pp', 'b3', 'b5', 'pp', 'b3', 'b4', 'b4', 'b4', 'b4', 'b4', 'b5', 'pp', 'b2', 'b6', 'pp', 'b3', 'b4', 'b4', 'b4', 'b4', 'b4', 'b5', 'pp', 'b3', 'b5', 'pp', 'B2'],
+                ['B6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'b2', 'b6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'B2'],
+                ['B3', 'B8', 'B8', 'b7', 'pp', 'b1', 'b7', 'pp', 'b1', 'b8', 'b8', 'b7', 'pp', 'b2', 'b6', 'pp', 'b1', 'b8', 'b8', 'b7', 'pp', 'b1', 'b7', 'pp', 'b1', 'B8', 'B8', 'B5'],
+                ['B4', 'B4', 'B4', 'b5', 'pp', 'b2', 'b6', 'pp', 'b3', 'b4', 'b7', 'b6', 'pp', 'b2', 'b6', 'pp', 'b2', 'b1', 'b4', 'b5', 'pp', 'b2', 'b6', 'pp', 'b3', 'B4', 'B4', 'B4'],
+                ['ze', 'ze', 'ze', 'ze', 'pp', 'b2', 'b6', 'pp', 'pp', 'pp', 'b2', 'b6', 'pp', 'b2', 'b6', 'pp', 'b2', 'b6', 'pp', 'pp', 'pp', 'b2', 'b6', 'pp', 'ze', 'ze', 'ze', 'ze'],
+                ['b8', 'b8', 'b8', 'b7', 'pp', 'b2', 'b3', 'b8', 'b7', 'ze', 'b3', 'b5', 'pp', 'b3', 'b5', 'pp', 'b3', 'b5', 'ze', 'b1', 'b8', 'b5', 'b6', 'pp', 'b1', 'b8', 'b8', 'b8'],
+                ['b1', 'b8', 'b7', 'b6', 'pp', 'b2', 'b1', 'b7', 'b6', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'b2', 'b1', 'b7', 'b6', 'pp', 'b2', 'b1', 'b8', 'b7'],
+                ['b2', 'ze', 'b6', 'b6', 'pp', 'b2', 'b3', 'b5', 'b6', 'ze', 'H1', 'B8', 'L8', 'H8', 'H8', 'R8', 'B8', 'H7', 'ze', 'b2', 'b3', 'b5', 'b6', 'pp', 'b2', 'b2', 'ze', 'b6'],
+                ['b2', 'ze', 'b6', 'b6', 'pp', 'b3', 'b4', 'b4', 'b5', 'ze', 'B2', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'B6', 'ze', 'b3', 'b4', 'b4', 'b5', 'pp', 'b2', 'b2', 'ze', 'b6'],
+                ['b2', 'ze', 'b6', 'b6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'B2', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'B6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'b2', 'b2', 'ze', 'b6'],
+                ['b2', 'ze', 'b6', 'b6', 'pp', 'b1', 'b8', 'b8', 'b7', 'pp', 'B2', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'B6', 'pp', 'b1', 'b8', 'b8', 'b7', 'pp', 'b2', 'b2', 'ze', 'b6'],
+                ['b3', 'b4', 'b5', 'b6', 'pp', 'b2', 'b1', 'b7', 'b6', 'pp', 'H3', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'H5', 'pp', 'b2', 'b1', 'b7', 'b6', 'pp', 'b2', 'b3', 'b4', 'b5'],
+                ['b4', 'b4', 'b4', 'b5', 'pp', 'b2', 'b2', 'b6', 'b6', 'pp', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'pp', 'b2', 'b2', 'b6', 'b6', 'pp', 'b3', 'b4', 'b4', 'b4'],
+                ['ze', 'ze', 'ze', 'ze', 'pp', 'b2', 'b2', 'b6', 'b6', 'pp', 'b1', 'b7', 'ze', 'b1', 'b7', 'ze', 'b1', 'b7', 'pp', 'b2', 'b2', 'b6', 'b6', 'pp', 'ze', 'ze', 'ze', 'ze'],
+                ['B8', 'B8', 'B8', 'b7', 'pp', 'b2', 'b2', 'b6', 'b6', 'pp', 'b2', 'b6', 'ze', 'b3', 'b5', 'ze', 'b2', 'b6', 'pp', 'b2', 'b2', 'b6', 'b6', 'pp', 'b1', 'B8', 'B8', 'B8'],
+                ['ze', 'ze', 'ze', 'B6', 'pp', 'b2', 'b2', 'b6', 'b6', 'pp', 'b2', 'b6', 'pp', 'pp', 'pp', 'pp', 'b2', 'b6', 'pp', 'b2', 'b2', 'b6', 'b6', 'pp', 'B2', 'ze', 'ze', 'ze'],
+                ['ze', 'ze', 'ze', 'B6', 'pp', 'b2', 'b3', 'b5', 'b6', 'pp', 'b2', 'b6', 'pp', 'b1', 'b7', 'pp', 'b2', 'b6', 'pp', 'b2', 'b3', 'b5', 'b6', 'pp', 'B2', 'ze', 'ze', 'ze'],
+                ['B1', 'B4', 'B4', 'b5', 'pp', 'b3', 'b4', 'b4', 'b5', 'pp', 'b3', 'b5', 'pp', 'b3', 'b5', 'pp', 'b3', 'b5', 'pp', 'b3', 'b4', 'b4', 'b5', 'pp', 'b3', 'B4', 'B4', 'B7'],
+                ['B6', 'PP', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'ze', 'ze', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'PP', 'B2'],
+                ['B6', 'pp', 'b1', 'b8', 'b8', 'b7', 'pp', 'b1', 'b7', 'pp', 'b1', 'b8', 'b8', 'b8', 'b8', 'b8', 'b8', 'b7', 'pp', 'b1', 'b7', 'pp', 'b1', 'b8', 'b8', 'b7', 'pp', 'B2'],
+                ['B6', 'pp', 'b2', 'b1', 'b7', 'b6', 'pp', 'B2', 'B6', 'pp', 'b3', 'b4', 'b4', 'b7', 'b1', 'b4', 'b4', 'b5', 'pp', 'B2', 'B6', 'pp', 'b2', 'b1', 'b7', 'b6', 'pp', 'B2'],
+                ['B6', 'pp', 'b2', 'b2', 'b6', 'b6', 'pp', 'B2', 'B6', 'pp', 'pp', 'pp', 'pp', 'b2', 'b6', 'pp', 'pp', 'pp', 'pp', 'B2', 'B6', 'pp', 'b2', 'b2', 'b6', 'b6', 'pp', 'B2'],
+                ['B6', 'pp', 'b2', 'b3', 'b5', 'b6', 'pp', 'B2', 'B6', 'pp', 'b1', 'b7', 'pp', 'b2', 'b6', 'pp', 'b1', 'b7', 'pp', 'B2', 'B6', 'pp', 'b2', 'b3', 'b5', 'b6', 'pp', 'B2'],
+                ['B6', 'pp', 'b3', 'b4', 'b4', 'b5', 'pp', 'B2', 'B6', 'pp', 'b3', 'b5', 'pp', 'b3', 'b5', 'pp', 'b3', 'b5', 'pp', 'B2', 'B6', 'pp', 'b3', 'b4', 'b4', 'b5', 'pp', 'B2'],
+                ['B6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'B2', 'B6', 'pp', 'pp', 'pp', 'pp', 'ze', 'ze', 'pp', 'pp', 'pp', 'pp', 'B2', 'B6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'B2'],
+                ['B3', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B5', 'B3', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B5', 'B3', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B5']
+                ],242]);
+        }
+        if (level === 6) {
+            return ([[
+                ['B1', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'E7', 'E1', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'E7', 'E1', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B7'],
+                ['B6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'b2', 'b6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'b2', 'b6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'B2'],
+                ['B6', 'pp', 'b1', 'b8', 'b8', 'b7', 'pp', 'b2', 'b6', 'pp', 'b1', 'b8', 'b8', 'b8', 'b8', 'b8', 'b8', 'b7', 'pp', 'b2', 'b6', 'pp', 'b1', 'b8', 'b8', 'b7', 'pp', 'B2'],
+                ['B6', 'PP', 'b2', 'ze', 'ze', 'b6', 'pp', 'b2', 'b6', 'pp', 'b2', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'b6', 'pp', 'b2', 'b6', 'pp', 'b2', 'ze', 'ze', 'b6', 'PP', 'B2'],
+                ['B6', 'pp', 'b3', 'b4', 'b4', 'b5', 'pp', 'b3', 'b5', 'pp', 'b3', 'b4', 'b4', 'b7', 'b1', 'b4', 'b4', 'b5', 'pp', 'b3', 'b5', 'pp', 'b3', 'b4', 'b4', 'b5', 'pp', 'B2'],
+                ['B6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'b2', 'b6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'B2'],
+                ['B3', 'B8', 'B8', 'B8', 'B8', 'b7', 'pp', 'b1', 'b7', 'pp', 'b1', 'b7', 'pp', 'b2', 'b6', 'pp', 'b1', 'b7', 'pp', 'b1', 'b7', 'pp', 'b1', 'B8', 'B8', 'B8', 'B8', 'B5'],
+                ['ze', 'ze', 'ze', 'ze', 'ze', 'B6', 'pp', 'b2', 'b6', 'pp', 'b3', 'b5', 'pp', 'b3', 'b5', 'pp', 'b3', 'b5', 'pp', 'b2', 'b6', 'pp', 'B2', 'ze', 'ze', 'ze', 'ze', 'ze'],
+                ['B4', 'B4', 'B4', 'B4', 'B4', 'b5', 'pp', 'b2', 'b6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'b2', 'b6', 'pp', 'b3', 'B4', 'B4', 'B4', 'B4', 'B4'],
+                ['ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'pp', 'b2', 'b6', 'ze', 'b1', 'b8', 'b8', 'b8', 'b8', 'b8', 'b8', 'b7', 'ze', 'b2', 'b6', 'pp', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze'],
+                ['b7', 'ze', 'b1', 'b8', 'b8', 'b7', 'pp', 'b3', 'b5', 'ze', 'b3', 'b4', 'b4', 'b4', 'b4', 'b4', 'b4', 'b5', 'ze', 'b3', 'b5', 'pp', 'b1', 'b8', 'b8', 'b7', 'ze', 'b1'],
+                ['B6', 'ze', 'b2', 'ze', 'ze', 'b6', 'pp', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'pp', 'b2', 'ze', 'ze', 'b6', 'ze', 'B2'],
+                ['B6', 'ze', 'b2', 'ze', 'ze', 'b6', 'pp', 'b1', 'b7', 'ze', 'H1', 'B8', 'L8', 'H8', 'H8', 'R8', 'B8', 'H7', 'ze', 'b1', 'b7', 'pp', 'b2', 'ze', 'ze', 'b6', 'ze', 'B2'],
+                ['B6', 'ze', 'b3', 'b4', 'b4', 'b5', 'pp', 'b2', 'b6', 'ze', 'B2', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'B6', 'ze', 'b2', 'b6', 'pp', 'b3', 'b4', 'b4', 'b5', 'ze', 'B2'],
+                ['B6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'b2', 'b6', 'ze', 'B2', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'B6', 'ze', 'b2', 'b6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'B2'],
+                ['B6', 'pp', 'b1', 'b8', 'b8', 'b7', 'pp', 'b2', 'b6', 'ze', 'B2', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'B6', 'ze', 'b2', 'b6', 'pp', 'b1', 'b8', 'b8', 'b7', 'pp', 'B2'],
+                ['B6', 'pp', 'b2', 'ze', 'ze', 'b6', 'pp', 'b3', 'b5', 'ze', 'H3', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'H5', 'ze', 'b3', 'b5', 'pp', 'b2', 'ze', 'ze', 'b6', 'pp', 'B2'],
+                ['B6', 'pp', 'b2', 'ze', 'ze', 'b6', 'pp', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'pp', 'b2', 'ze', 'ze', 'b6', 'pp', 'B2'],
+                ['B6', 'pp', 'b3', 'b4', 'b4', 'b5', 'pp', 'b1', 'b8', 'b8', 'b8', 'b8', 'b8', 'b8', 'b8', 'b8', 'b8', 'b8', 'b8', 'b8', 'b7', 'pp', 'b3', 'b4', 'b4', 'b5', 'pp', 'B2'],
+                ['B6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'b2', 'b1', 'b4', 'b4', 'b4', 'b4', 'b7', 'b1', 'b4', 'b4', 'b4', 'b4', 'b7', 'b6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'B2'],
+                ['B3', 'B8', 'B8', 'B8', 'B8', 'b7', 'pp', 'b2', 'b6', 'pp', 'pp', 'pp', 'pp', 'b2', 'b6', 'pp', 'pp', 'pp', 'pp', 'b2', 'b6', 'pp', 'b1', 'B8', 'B8', 'B8', 'B8', 'B5'],
+                ['ze', 'ze', 'ze', 'ze', 'ze', 'B6', 'pp', 'b2', 'b6', 'pp', 'b1', 'b7', 'pp', 'b2', 'b6', 'pp', 'b1', 'b7', 'pp', 'b2', 'b6', 'pp', 'B2', 'ze', 'ze', 'ze', 'ze', 'ze'],
+                ['B1', 'B4', 'B4', 'B4', 'B4', 'b5', 'pp', 'b3', 'b5', 'pp', 'b2', 'b6', 'pp', 'b3', 'b5', 'pp', 'b2', 'b6', 'pp', 'b3', 'b5', 'pp', 'b3', 'B4', 'B4', 'B4', 'B4', 'B7'],
+                ['B6', 'PP', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'b2', 'b6', 'pp', 'ze', 'ze', 'pp', 'b2', 'b6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'PP', 'B2'],
+                ['B6', 'pp', 'b1', 'b8', 'b8', 'b7', 'pp', 'b1', 'b8', 'b8', 'b5', 'b6', 'ze', 'b1', 'b7', 'ze', 'b2', 'b3', 'b8', 'b8', 'b7', 'pp', 'b1', 'b8', 'b8', 'b7', 'pp', 'B2'],
+                ['B6', 'pp', 'b3', 'b4', 'b4', 'b5', 'pp', 'b3', 'b4', 'b4', 'b7', 'b6', 'ze', 'b3', 'b5', 'ze', 'b2', 'b1', 'b4', 'b4', 'b5', 'pp', 'b3', 'b4', 'b4', 'b5', 'pp', 'B2'],
+                ['B6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'b2', 'b6', 'pp', 'pp', 'pp', 'pp', 'b2', 'b6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'B2'],
+                ['B6', 'pp', 'b1', 'b7', 'pp', 'b1', 'B8', 'B8', 'b7', 'pp', 'b2', 'b6', 'pp', 'b1', 'b7', 'pp', 'b2', 'b6', 'pp', 'b1', 'B8', 'B8', 'b7', 'pp', 'b1', 'b7', 'pp', 'B2'],
+                ['b5', 'pp', 'b3', 'b5', 'pp', 'B2', 'ze', 'ze', 'B6', 'pp', 'b3', 'b5', 'pp', 'b3', 'b5', 'pp', 'b3', 'b5', 'pp', 'B2', 'ze', 'ze', 'B6', 'pp', 'b3', 'b5', 'pp', 'b3'],
+                ['ze', 'pp', 'pp', 'pp', 'pp', 'B2', 'ze', 'ze', 'B6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'B2', 'ze', 'ze', 'B6', 'pp', 'pp', 'pp', 'pp', 'ze'],
+                ['B8', 'B8', 'B8', 'B8', 'B8', 'B5', 'ze', 'ze', 'B3', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B5', 'ze', 'ze', 'B3', 'B8', 'B8', 'B8', 'B8', 'B8']
+                ],244]);
+        }
+    }
+
+    function isValid(row, col) {
+        return ((row >= 0) && (row < ROW_MAX) && (col >= 0) && (col < COL_MAX));
+    }//isValid() ends here
+
+    function isValidClass(classAtPos) {
+        return (classAtPos === "pp" || classAtPos === "PP" || classAtPos === "ze");
+    }//isValidClass() ends here
+
+    function isGameOver(pacmanPos, blinky, pinky, inky, clyde) {
+        return ((blinky.getPos().x === pacmanPos.x && blinky.getPos().y === pacmanPos.y && !blinky.getPanicMode() && !blinky.getIsEatenByPacman()) || (pinky.getPos().x === pacmanPos.x && pinky.getPos().y === pacmanPos.y && !pinky.getPanicMode() && !pinky.getIsEatenByPacman()) || (inky.getPos().x === pacmanPos.x && inky.getPos().y === pacmanPos.y && !inky.getPanicMode() && !inky.getIsEatenByPacman()) || (clyde.getPos().x === pacmanPos.x && clyde.getPos().y === pacmanPos.y && !clyde.getPanicMode() && !clyde.getIsEatenByPacman()));
+    }//isGameOver() ends here
+
+    function clearAllIntervalsAndTimeouts() {
+    	for (i = 0; i < timeouts.length; i++) {
+    	  clearTimeout(timeouts[i]);
+    	  timeouts.splice(i, 1);
+    	}
+    	clearTimeout(window.pacmanTimeout);
+    	clearTimeout(window.blinkyTimeout);
+    	clearTimeout(window.inkyTimeout);
+    	clearTimeout(window.pinkyTimeout);
+    	clearTimeout(window.clydeTimeout);
+    	clearTimeout(window.scatterTimeout);
+    	clearTimeout(window.chaseTimeout);
+    	clearTimeout(window.panicTimeout);
+    	clearTimeout(window.panicModeGettingOverTimeout);
+    }
+
+    function drawLevelParts(classAtPos, pos) {
+        var posDiv = document.getElementById(pos.x + '_' + pos.y);
+        if (posDiv === null) {
+            var ijkl = document.getElementsByClassName('ijkl')[0];
+            ijkl.innerHTML += "<div class=\"" + classAtPos + "\" id=\"" + pos.x + "_" + pos.y + "\"></div>";
+            return;
+        }
+        posDiv.removeAttribute("class");
+        posDiv.setAttribute("class", classAtPos);
+    }//drawLevelParts() ends here
+
+    function generateVisited() {
+        var visited = [], temp = [], i, j;
+        for(i = 0; i < ROW_MAX; i++)
+        {
+            temp = [];
+            for(j = 0; j < COL_MAX; j++)
+                temp.push(0);
+            visited[i] = temp;
+        }
+        return visited;
+    }//generateVisited() ends here
+
+
+    function findPath(matrix, ghostPos, pacmanPos, pathToPacman, ghostDirection) {
+        if (!(matrix[ghostPos.x][ghostPos.y] == 'H8' || matrix[ghostPos.x][ghostPos.y] == 'ze' || matrix[pacmanPos.x][pacmanPos.y] == 'ze' || matrix[ghostPos.x][ghostPos.y] == 'pp' || matrix[pacmanPos.x][pacmanPos.y] == 'pp' || matrix[ghostPos.x][ghostPos.y] == 'PP' || matrix[pacmanPos.x][pacmanPos.y] == 'PP')) {
+            return -1;
+        }
+        var visited = generateVisited();
+        visited[ghostPos.x][ghostPos.y] = 1;
+        var q = new Queue();
+        var s = {pt: ghostPos, dist: 0};
+        q.enqueue(s);
+        var count = 0, temp = [];
+        while (q.isEmpty() !== true)
+        {
+            var curr = q.front();
+            var pt = curr.pt;
+            temp[count++] = curr;
+            if (pt.x == pacmanPos.x && pt.y == pacmanPos.y) {
+                var earlierPoint = temp[temp.length - 1];
+                for(var l = temp.length - 2; l >= 0; l--) {
+                    if ((temp[l].pt.x == earlierPoint.pt.x && Math.abs(temp[l].pt.y - earlierPoint.pt.y) == 1) || (temp[l].pt.y == earlierPoint.pt.y && Math.abs(temp[l].pt.x - earlierPoint.pt.x) == 1)) {
+                        pathToPacman.push(temp[l].pt);
+                        earlierPoint = temp[l];
+                    }
+                }
+                pathToPacman = pathToPacman.reverse();
+                pathToPacman.push(pacmanPos);
+                return curr.dist;
+            }
+            q.dequeue();
+            for (var i = 0; i < 4; i++)
+            {
+                if (count == 1 && ghostDirection.x == -1 * rowNum[i] && ghostDirection.y == -1 * colNum[i])
+                    continue;
+                var row = pt.x + rowNum[i];
+                var col = pt.y + colNum[i];
+                if (isValid(row, col) === true && (matrix[row][col] === 'pp' || matrix[row][col] === 'PP' || matrix[row][col] === 'H8' || matrix[row][col] === 'ze') && visited[row][col] === 0)
+                {
+                    visited[row][col] = 1;
+                    var adjCell = {pt: {x: row, y: col}, dist: curr.dist + 1};
+                    q.enqueue(adjCell);
+                }
+            }
+        }
+        return -1;
+    }
+
+    function movePacman(matrix, matrixCopy, pacmanPos, blinky, pinky, inky, clyde) {
+        if (isGameOver(pacmanPos, blinky, pinky, inky, clyde)) {
+            clearAllIntervalsAndTimeouts();
+			if (window.livesLeft.childElementCount === 1) {
+				window.livesLeft.removeChild(livesLeft.lastElementChild);
+				$('.cd-popup').addClass('is-visible');
+            	gameOverParagraph.innerHTML = "<h1>Game Over</h1><br><h4>SCORE: " + window.currentScore + "</h4><br><h3>Play again?</h3>";
+			}
+			else
+				setTimeout(main, 0);
+        }
+        else {
+			if (blinky.getPanicMode() === true)
+                blinky.setIsEatenByPacman((blinky.getPos().x === pacmanPos.x && blinky.getPos().y === pacmanPos.y) || blinky.isEatenByPacman);
+			if (pinky.getPanicMode() === true)
+                pinky.setIsEatenByPacman((pinky.getPos().x === pacmanPos.x && pinky.getPos().y === pacmanPos.y) || pinky.isEatenByPacman);
+			if (inky.getPanicMode() === true)
+                inky.setIsEatenByPacman((inky.getPos().x === pacmanPos.x && inky.getPos().y === pacmanPos.y) || inky.isEatenByPacman);
+			if (clyde.getPanicMode() === true)
+                clyde.setIsEatenByPacman((clyde.getPos().x === pacmanPos.x && clyde.getPos().y === pacmanPos.y) || clyde.isEatenByPacman);
+		}
+
+        if (pacmanPos.x + pacmanDirection.x >= 0 && pacmanPos.x + pacmanDirection.x < ROW_MAX && pacmanPos.y + pacmanDirection.y === -1) {
+            matrix[pacmanPos.x][pacmanPos.y] = 'ze';
+            matrixCopy[pacmanPos.x][pacmanPos.y] = 'ze';
+            drawLevelParts(matrixCopy[pacmanPos.x][pacmanPos.y], pacmanPos);
+            pacmanPos.y = COL_MAX-1;
+            drawLevelParts(matrixCopy[pacmanPos.x][pacmanPos.y], pacmanPos);
+        }
+        else if (pacmanPos.x + pacmanDirection.x >= 0 && pacmanPos.x + pacmanDirection.x < ROW_MAX && pacmanPos.y + pacmanDirection.y === COL_MAX) {
+            matrix[pacmanPos.x][pacmanPos.y] = 'ze';
+            matrixCopy[pacmanPos.x][pacmanPos.y] = 'ze';
+            drawLevelParts(matrixCopy[pacmanPos.x][pacmanPos.y], pacmanPos);
+            pacmanPos.y = 0;
+            drawLevelParts(matrixCopy[pacmanPos.x][pacmanPos.y], pacmanPos);
+        }
+        else if (pacmanPos.x + pacmanDirection.x >= 0 && pacmanPos.x + pacmanDirection.x < ROW_MAX && pacmanPos.y + pacmanDirection.y >= 0 && pacmanPos.y + pacmanDirection.y < COL_MAX && isValidClass(matrix[pacmanPos.x + pacmanDirection.x][pacmanPos.y + pacmanDirection.y])) {
+            if (matrix[pacmanPos.x + pacmanDirection.x][pacmanPos.y + pacmanDirection.y] === "PP") {
+                window.currentScore += 100;
+                numberOfPillsLeft--;
+                if (numberOfPillsLeft == 0) {
+                	clearAllIntervalsAndTimeouts();
+                    if (window.currentLevel < window.totalNumberOfLevels) {
+                    	window.currentLevel++;
+                    	setTimeout(main, 0);
+                    }
+                    else {
+                    	$('.cd-popup').addClass('is-visible');
+            			gameOverParagraph.innerHTML = "<h1>Game Complete</h1><br><h4>SCORE: " + window.currentScore + "</h4><br><h3>Play again?</h3>";
+                    }
+                }
+                blinky.setPanicMode(true);
+                pinky.setPanicMode(true);
+                inky.setPanicMode(true);
+                clyde.setPanicMode(true);
+                blinky.setPanicModeGettingOver(false);
+                pinky.setPanicModeGettingOver(false);
+                inky.setPanicModeGettingOver(false);
+                clyde.setPanicModeGettingOver(false);
+                clearTimeout(window.panicTimeout);
+                clearTimeout(window.panicModeGettingOverTimeout);
+
+                window.panicTimeout = setTimeout(function() {
+                    blinky.setPanicMode(false);
+                    pinky.setPanicMode(false);
+                    inky.setPanicMode(false);
+                    clyde.setPanicMode(false);
+                    blinky.setPanicModeGettingOver(false);
+                    pinky.setPanicModeGettingOver(false);
+                    inky.setPanicModeGettingOver(false);
+                    clyde.setPanicModeGettingOver(false);
+                }, 10000);
+
+                window.panicModeGettingOverTimeout = setTimeout(function() {
+                    blinky.setPanicModeGettingOver(true);
+                    pinky.setPanicModeGettingOver(true);
+                    inky.setPanicModeGettingOver(true);
+                    clyde.setPanicModeGettingOver(true);
+                }, 7000);
+            }
+            else if (matrix[pacmanPos.x + pacmanDirection.x][pacmanPos.y + pacmanDirection.y] === "pp") {
+                window.currentScore += 10;
+                numberOfPillsLeft--;
+                if (numberOfPillsLeft === 0) {
+                	clearAllIntervalsAndTimeouts();
+                    if (window.currentLevel < window.totalNumberOfLevels) {
+                    	window.currentLevel++;
+                    	setTimeout(main, 0);
+                    }
+                    else {
+                    	$('.cd-popup').addClass('is-visible');
+            			gameOverParagraph.innerHTML = "<h1>Game Complete</h1><br><h4>SCORE: " + window.currentScore + "</h4><br><h3>Play again?</h3>";
+                    }
+                }
+            }
+            updateScore.innerText = window.currentScore;
+            matrix[pacmanPos.x][pacmanPos.y] = 'ze';
+            matrixCopy[pacmanPos.x][pacmanPos.y] = 'ze';
+            drawLevelParts(matrixCopy[pacmanPos.x][pacmanPos.y], pacmanPos);
+            pacmanPos.x += pacmanDirection.x;
+            pacmanPos.y += pacmanDirection.y;
+            drawLevelParts(matrixCopy[pacmanPos.x][pacmanPos.y], pacmanPos);
+        }
+        if (newPacmanDirection !== null) {
+        	if (pacmanPos.x + newPacmanDirection.x >= 0 && pacmanPos.x + newPacmanDirection.x < ROW_MAX && pacmanPos.y + newPacmanDirection.y >= 0 && pacmanPos.y + newPacmanDirection.y < COL_MAX && isValidClass(matrix[pacmanPos.x + newPacmanDirection.x][pacmanPos.y + newPacmanDirection.y])) {
+        		pacmanDirection = {x: newPacmanDirection.x, y: newPacmanDirection.y};
+        		newPacmanDirection = null; 
+        	}
+        }
+    }//movePacman() ends here
+
+    function myPacmanNewFunction(matrix, matrixCopy, pacmanPos, blinky, pinky, inky, clyde) {
+        movePacman(matrix, matrixCopy, pacmanPos, blinky, pinky, inky, clyde);
+        if (window.pacmanMouthAngle >= 360)
+            window.angleDiff = -45;
+        else if (window.pacmanMouthAngle <= 270)
+            window.angleDiff = 45;
+        window.pacmanMouthAngle = window.pacmanMouthAngle + window.angleDiff;
+        if (pacmanDirection.x === -1 && pacmanDirection.y === 0)
+            matrixCopy[pacmanPos.x][pacmanPos.y] = "pacmanUp" + window.pacmanMouthAngle;
+        else if (pacmanDirection.x === 1 && pacmanDirection.y === 0)
+            matrixCopy[pacmanPos.x][pacmanPos.y] = "pacmanDown" + window.pacmanMouthAngle;
+        else if (pacmanDirection.x === 0 && pacmanDirection.y === -1)
+            matrixCopy[pacmanPos.x][pacmanPos.y] = "pacmanLeft" + window.pacmanMouthAngle;
+        else if (pacmanDirection.x === 0 && pacmanDirection.y === 1)
+            matrixCopy[pacmanPos.x][pacmanPos.y] = "pacmanRight" + window.pacmanMouthAngle;
+        drawLevelParts(matrixCopy[pacmanPos.x][pacmanPos.y], pacmanPos);
+
+        if (!blinky.getIsEatenByPacman())
+        	blinky.setClass(blinky.getClass().slice(0, -1) + (1.5 + window.alternateGhostAnimate).toString());
+        if (!pinky.getIsEatenByPacman())
+        	pinky.setClass(pinky.getClass().slice(0, -1) + (1.5 + window.alternateGhostAnimate).toString());
+        if (!inky.getIsEatenByPacman())
+        	inky.setClass(inky.getClass().slice(0, -1) + (1.5 + window.alternateGhostAnimate).toString());
+        if (!clyde.getIsEatenByPacman())
+        	clyde.setClass(clyde.getClass().slice(0, -1) + (1.5 + window.alternateGhostAnimate).toString());
+        matrixCopy[blinky.getPos().x][blinky.getPos().y] = blinky.getClass();
+        matrixCopy[pinky.getPos().x][pinky.getPos().y] = pinky.getClass();
+        matrixCopy[inky.getPos().x][inky.getPos().y] = inky.getClass();
+        matrixCopy[clyde.getPos().x][clyde.getPos().y] = clyde.getClass();
+        drawLevelParts(matrixCopy[blinky.getPos().x][blinky.getPos().y], blinky.getPos());
+        drawLevelParts(matrixCopy[pinky.getPos().x][pinky.getPos().y], pinky.getPos());
+        drawLevelParts(matrixCopy[inky.getPos().x][inky.getPos().y], inky.getPos());
+        drawLevelParts(matrixCopy[clyde.getPos().x][clyde.getPos().y], clyde.getPos());
+        if (blinky.getPanicMode() === true) {
+            if (blinky.getPanicModeGettingOver() === true)
+                blinky.setClass("ghost" + window.panicColour + (1.5 + window.alternateGhostAnimate).toString());
+            else
+                blinky.setClass("ghostBlue" + (1.5 + window.alternateGhostAnimate).toString());
+
+            if (blinky.isEatenByPacman === true)
+                blinky.setDirection(blinky.getDirection().x, blinky.getDirection().y);// will automatically set appropriate eyes direction
+
+            matrixCopy[blinky.getPos().x][blinky.getPos().y] = blinky.getClass();
+            drawLevelParts(matrixCopy[blinky.getPos().x][blinky.getPos().y], blinky.getPos());
+        }
+        if (pinky.getPanicMode() === true) {
+            if (pinky.getPanicModeGettingOver() === true)
+                pinky.setClass("ghost" + window.panicColour + (1.5 + window.alternateGhostAnimate).toString());
+            else
+                pinky.setClass("ghostBlue" + (1.5 + window.alternateGhostAnimate).toString());
+
+            if (pinky.isEatenByPacman === true)
+                pinky.setDirection(pinky.getDirection().x, pinky.getDirection().y);
+
+            matrixCopy[pinky.getPos().x][pinky.getPos().y] = pinky.getClass();
+            drawLevelParts(matrixCopy[pinky.getPos().x][pinky.getPos().y], pinky.getPos());
+        }
+        if (inky.getPanicMode() === true) {
+            if (inky.getPanicModeGettingOver() === true)
+                inky.setClass("ghost" + window.panicColour + (1.5 + window.alternateGhostAnimate).toString());
+            else
+                inky.setClass("ghostBlue" + (1.5 + window.alternateGhostAnimate).toString());
+
+            if (inky.isEatenByPacman === true)
+                inky.setDirection(inky.getDirection().x, inky.getDirection().y);
+
+            matrixCopy[inky.getPos().x][inky.getPos().y] = inky.getClass();
+            drawLevelParts(matrixCopy[inky.getPos().x][inky.getPos().y], inky.getPos());
+        }
+        if (clyde.getPanicMode() === true) {
+            if (clyde.getPanicModeGettingOver() === true)
+                clyde.setClass("ghost" + window.panicColour + (1.5 + window.alternateGhostAnimate).toString());
+            else
+                clyde.setClass("ghostBlue" + (1.5 + window.alternateGhostAnimate).toString());
+
+            if (clyde.isEatenByPacman === true)
+                clyde.setDirection(clyde.getDirection().x, clyde.getDirection().y);
+
+            matrixCopy[clyde.getPos().x][clyde.getPos().y] = clyde.getClass();
+            drawLevelParts(matrixCopy[clyde.getPos().x][clyde.getPos().y], clyde.getPos());
+        }
+        window.alternateGhostAnimate =  window.alternateGhostAnimate * -1;
+
+        if (window.S1 === false) {
+            // var today = new Date();
+            // var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+            // console.log("chase mode interval :::::::  " + time);
+            window.S1 = true;
+            window.chaseMode = true;
+            window.chaseTimeout = setTimeout(function() {
+                window.S2 = false;
+            	window.chaseMode = false;
+            }, window.chaseModeDuration);
+          }
+        if (window.S2 === false) {
+            // var today = new Date();
+            // var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+            // console.log("scatter mode interval :::::::  " + time);
+            window.S2 = true;
+            window.scatterMode = true;
+            window.scatterTimeout = setTimeout(function() {
+                window.S1 = false;
+                window.scatterMode = false;
+                if (window.scatterModeDuration > 5000)
+                    window.scatterModeDuration -= 1000;
+            }, window.scatterModeDuration);
+        }
+    	window.pacmanTimeout = setTimeout(function(){ myPacmanNewFunction(matrix, matrixCopy, pacmanPos, blinky, pinky, inky, clyde); }, pacmanSpeed);
+    }//myPacmanNewFunction() ends here
+
+    function blinkyGhost(matrix, matrixCopy, pacmanPos) {
+        var blinkyPos = blinky.getPos();
+        if (blinky.getIsEatenByPacman() === true) {
+            var pathToPacman = [];
+            findPath(matrix, blinkyPos, {x: 15, y: 12}, pathToPacman, blinky.getDirection());
+
+            if (pathToPacman[1])
+                blinky.move(matrix, matrixCopy, pacmanPos, pathToPacman[1], inky, pinky, clyde);
+            else {
+            	blinky.setPanicMode(false);
+        		blinky.setPanicModeGettingOver(false);
+            	blinky.setIsEatenByPacman(false);
+                blinky.move(matrix, matrixCopy, pacmanPos, {x: 15, y: 12}, inky, pinky, clyde);
+            }
+        }
+        else if (blinky.getPanicMode() === true)
+        	blinky.move(matrix, matrixCopy, pacmanPos, {x: randomIntFromInterval(-1*ROW_MAX, ROW_MAX), y: randomIntFromInterval(-1*ROW_MAX, ROW_MAX)}, inky, pinky, clyde);
+        else if (blinky.getLeftHouse() === true && window.chaseMode === true)
+            blinky.move(matrix, matrixCopy, pacmanPos, pacmanPos, inky, pinky, clyde);
+        else if (blinky.getLeftHouse() === false)
+            blinky.move(matrix, matrixCopy, pacmanPos, {x: 11, y: 14}, inky, pinky, clyde);
+        else if (window.scatterMode === true)
+            blinky.move(matrix, matrixCopy, pacmanPos, {x: -1, y: 28}, inky, pinky, clyde);
+        
+        if (blinkyPos.x === 11 && blinkyPos.y === 14)
+            blinky.setLeftHouse(true);
+        else if (blinkyPos.x >= 12 && blinkyPos.x <= 16 && blinkyPos.y >= 10 && blinkyPos.y <= 17)
+            blinky.setLeftHouse(false);
+        window.blinkyTimeout = setTimeout(function(){ blinkyGhost(matrix, matrixCopy, pacmanPos); }, blinky.getSpeed());
+    }//blinkyGhost() ends here
+
+    function pinkyGhost(matrix, matrixCopy, pacmanPos) {
+        var pinkyPos = pinky.getPos();
+        if (pinky.getIsEatenByPacman() === true) {
+            var pathToPacman = [];
+            findPath(matrix, pinkyPos, {x: 15, y: 14}, pathToPacman, pinky.getDirection());
+            if (pathToPacman[1])
+                pinky.move(matrix, matrixCopy, pacmanPos, pathToPacman[1], inky, blinky, clyde);
+            else {
+            	pinky.setPanicMode(false);
+            	pinky.setPanicModeGettingOver(false);
+            	pinky.setIsEatenByPacman(false);
+                pinky.move(matrix, matrixCopy, pacmanPos, {x: 11, y: 14}, inky, blinky, clyde);
+            }
+        }
+        else if (pinky.getPanicMode() === true)
+        	pinky.move(matrix, matrixCopy, pacmanPos, {x: randomIntFromInterval(-1*ROW_MAX, ROW_MAX), y: randomIntFromInterval(-1*ROW_MAX, ROW_MAX)}, inky, pinky, clyde);
+        else if (pinky.getLeftHouse() === true && window.chaseMode === true)
+            pinky.move(matrix, matrixCopy, pacmanPos, {x: pacmanPos.x - 6*pacmanDirection.x, y: pacmanPos.y - 6*pacmanDirection.y}, inky, blinky, clyde);
+        else if (pinky.getLeftHouse() === false)
+            pinky.move(matrix, matrixCopy, pacmanPos, {x: 11, y: 14}, inky, blinky, clyde);
+        else if (window.scatterMode === true)
+            pinky.move(matrix, matrixCopy, pacmanPos, {x: -1, y: -1}, inky, blinky, clyde);
+
+        if (pinkyPos.x === 11 && pinkyPos.y === 14)
+            pinky.setLeftHouse(true);
+        else if (pinkyPos.x >= 12 && pinkyPos.x <= 16 && pinkyPos.y >= 10 && pinkyPos.y <= 17)
+            pinky.setLeftHouse(false);
+        window.pinkyTimeout = setTimeout(function(){ pinkyGhost(matrix, matrixCopy, pacmanPos); }, pinky.getSpeed());
+    }//pinkyGhost() ends here
+
+    function inkyGhost(matrix, matrixCopy, pacmanPos) {
+        var inkyPos = inky.getPos();
+        if (inky.getIsEatenByPacman() === true) {
+            var pathToPacman = [];
+            findPath(matrix, inkyPos, {x: 15, y: 13}, pathToPacman, inky.getDirection());
+            if (pathToPacman[1])
+                inky.move(matrix, matrixCopy, pacmanPos, pathToPacman[1], blinky, pinky, clyde);
+            else {
+            	inky.setPanicMode(false);
+            	inky.setPanicModeGettingOver(false);
+            	inky.setIsEatenByPacman(false);
+                inky.move(matrix, matrixCopy, pacmanPos, {x: 11, y: 14}, blinky, pinky, clyde);
+            }
+        }
+        else if (inky.getPanicMode() === true)
+        	inky.move(matrix, matrixCopy, pacmanPos, {x: randomIntFromInterval(-1*ROW_MAX, ROW_MAX), y: randomIntFromInterval(-1*ROW_MAX, ROW_MAX)}, blinky, pinky, clyde);
+        else if (inky.getLeftHouse() === true && window.chaseMode === true) {
+        	var blinkyPos = blinky.getPos();
+        	inky.move(matrix, matrixCopy, pacmanPos, {x: 2*pacmanPos.x - blinkyPos.x, y: 2*pacmanPos.y + blinkyPos.y}, blinky, pinky, clyde);
+        }
+        else if (inky.getLeftHouse() === false)
+            inky.move(matrix, matrixCopy, pacmanPos, {x: 11, y: 14}, blinky, pinky, clyde);
+        else if (window.scatterMode === true)
+            inky.move(matrix, matrixCopy, pacmanPos, {x: 31, y: 28}, blinky, pinky, clyde);
+
+        if (inkyPos.x === 11 && inkyPos.y === 14)
+            inky.setLeftHouse(true);
+        else if (inkyPos.x >= 12 && inkyPos.x <= 16 && inkyPos.y >= 10 && inkyPos.y <= 17)
+            inky.setLeftHouse(false);
+        window.inkyTimeout = setTimeout(function(){ inkyGhost(matrix, matrixCopy, pacmanPos); }, inky.getSpeed());
+    }//inkyGhost() ends here
+
+    function clydeGhost(matrix, matrixCopy, pacmanPos) {
+        var clydePos = clyde.getPos();
+        if (clyde.getIsEatenByPacman() === true) {
+            var pathToPacman = [];
+            findPath(matrix, clydePos, {x: 15, y: 15}, pathToPacman, clyde.getDirection());
+            if (pathToPacman[1])
+                clyde.move(matrix, matrixCopy, pacmanPos, pathToPacman[1], inky, blinky, pinky);
+            else {
+            	clyde.setPanicMode(false);
+            	clyde.setPanicModeGettingOver(false);
+            	clyde.setIsEatenByPacman(false);
+                clyde.move(matrix, matrixCopy, pacmanPos, {x: 11, y: 14}, inky, blinky, pinky);
+            }
+        }
+        else if (clyde.getPanicMode() === true)
+        	clyde.move(matrix, matrixCopy, pacmanPos, {x: randomIntFromInterval(-1*ROW_MAX, ROW_MAX), y: randomIntFromInterval(-1*ROW_MAX, ROW_MAX)}, inky, blinky, pinky);
+        else if (clyde.getLeftHouse() === true && window.chaseMode === true) {
+            if ((clyde.getPos().x > pacmanPos.x + 4 || clyde.getPos().x < pacmanPos.x - 4) && (clyde.getPos().y > pacmanPos.y + 4 || clyde.getPos().y < pacmanPos.y - 4))
+                clyde.move(matrix, matrixCopy, pacmanPos, {x: pacmanPos.x - 4*pacmanDirection.x, y: pacmanPos.y - 4*pacmanDirection.y}, inky, blinky, pinky);
+            else
+                clyde.move(matrix, matrixCopy, pacmanPos, {x: pacmanPos.x - 12*pacmanDirection.x, y: pacmanPos.y - 12*pacmanDirection.y}, inky, blinky, pinky);
+        }
+        else if (clyde.getLeftHouse() === false)
+            clyde.move(matrix, matrixCopy, pacmanPos, {x: 11, y: 13}, inky, blinky, pinky);
+        else if (window.scatterMode === true)
+            clyde.move(matrix, matrixCopy, pacmanPos, {x: 31, y: -1}, inky, blinky, pinky);
+
+        if (clydePos.x === 11 && clydePos.y === 13)
+            clyde.setLeftHouse(true);
+        else if (clydePos.x >= 12 && clydePos.x <= 16 && clydePos.y >= 10 && clydePos.y <= 17)
+            clyde.setLeftHouse(false);
+        window.clydeTimeout = setTimeout(function(){ clydeGhost(matrix, matrixCopy, pacmanPos); }, clyde.getSpeed());
+    }//clydeGhost() ends here
+
+    function pacmanChangeDirection(matrix, pacmanPos, blinky, pinky, inky, clyde) {
+        var map = {};
+        onkeydown = onkeyup = function(event) {
+            event = event || event;
+            map[event.keyCode] = event.type === 'keydown';
+            if (map[37] === true || map[38] === true || map[39] === true || map[40] === true) {
+                if (isGameOver(pacmanPos, blinky, pinky, inky, clyde)) {
+                    clearAllIntervalsAndTimeouts();
+        			if (window.livesLeft.childElementCount === 1) {
+        				window.livesLeft.removeChild(livesLeft.lastElementChild);
+						$('.cd-popup').addClass('is-visible');
+                    	gameOverParagraph.innerHTML = "<h1>Game Over</h1><br><h4>SCORE: " + window.currentScore + "</h4><br><h3>Play again?</h3>";
+        			}
+        			else
+        				setTimeout(main, 0);
+                }
+				else {
+					if (blinky.getPanicMode() === true)
+		                blinky.setIsEatenByPacman((blinky.getPos().x === pacmanPos.x && blinky.getPos().y === pacmanPos.y) || blinky.isEatenByPacman);
+					if (pinky.getPanicMode() === true)
+		                pinky.setIsEatenByPacman((pinky.getPos().x === pacmanPos.x && pinky.getPos().y === pacmanPos.y) || pinky.isEatenByPacman);
+					if (inky.getPanicMode() === true)
+		                inky.setIsEatenByPacman((inky.getPos().x === pacmanPos.x && inky.getPos().y === pacmanPos.y) || inky.isEatenByPacman);
+					if (clyde.getPanicMode() === true)
+		                clyde.setIsEatenByPacman((clyde.getPos().x === pacmanPos.x && clyde.getPos().y === pacmanPos.y) || clyde.isEatenByPacman);
+				}
+                if (map[38] === true) {
+                    if (isValid(pacmanPos.x - 1, pacmanPos.y) && isValidClass(matrix[pacmanPos.x - 1][pacmanPos.y]))
+                        pacmanDirection = {x: -1, y: 0};
+                    else if (pacmanDirection.y !== 0 && isValid(pacmanPos.x - 1, pacmanPos.y + pacmanDirection.y) && isValidClass(matrix[pacmanPos.x - 1][pacmanPos.y + pacmanDirection.y]))
+                    	newPacmanDirection = {x: -1, y: 0};
+                }
+                if (map[37] === true) {
+                    if (isValid(pacmanPos.x, pacmanPos.y - 1) && isValidClass(matrix[pacmanPos.x][pacmanPos.y - 1]))
+                        pacmanDirection = {x: 0, y: -1};
+                    else if (pacmanDirection.x !== 0 && isValid(pacmanPos.x + pacmanDirection.x, pacmanPos.y - 1) && isValidClass(matrix[pacmanPos.x + pacmanDirection.x][pacmanPos.y - 1]))
+                    	newPacmanDirection = {x: 0, y: -1};
+                }
+                if (map[40] === true) {
+                    if (isValid(pacmanPos.x + 1, pacmanPos.y) && isValidClass(matrix[pacmanPos.x + 1][pacmanPos.y]))
+                        pacmanDirection = {x: 1, y: 0};
+                    else if (pacmanDirection.y !== 0 && isValid(pacmanPos.x + 1, pacmanPos.y + pacmanDirection.y) && isValidClass(matrix[pacmanPos.x + 1][pacmanPos.y + pacmanDirection.y]))
+                    	newPacmanDirection = {x: 1, y: 0};
+                }
+                if (map[39] === true) {
+                    if (isValid(pacmanPos.x, pacmanPos.y + 1) && isValidClass(matrix[pacmanPos.x][pacmanPos.y + 1]))
+                        pacmanDirection = {x: 0, y: 1};
+                    else if (pacmanDirection.x !== 0 && isValid(pacmanPos.x + pacmanDirection.x, pacmanPos.y + 1) && isValidClass(matrix[pacmanPos.x + pacmanDirection.x][pacmanPos.y + 1]))
+                    	newPacmanDirection = {x: 0, y: 1};
+                }
+            }
+        };
+    }//pacmanChangeDirection() ends here
+
+    document.addEventListener('touchstart', handleTouchStart, false);
+    document.addEventListener('touchmove', handleTouchMove, false);
+
+    var xDown = null;
+    var yDown = null;
+
+    function handleTouchStart(evt) {
+        xDown = evt.touches[0].clientX;
+        yDown = evt.touches[0].clientY;
+    };//handleTouchStart() ends here
+
+    function handleTouchMove(evt) {
+        if ( ! xDown || ! yDown ) {
+            return;
+        }
+
+        var xUp = evt.touches[0].clientX;
+        var yUp = evt.touches[0].clientY;
+
+        var xDiff = xDown - xUp;
+        var yDiff = yDown - yUp;
+
+        if ( Math.abs( xDiff ) > Math.abs( yDiff ) ) {/*most significant*/
+            if ( xDiff > 0 ) {
+                /* left swipe */
+                if (isGameOver(pacmanPos, blinky, pinky, inky, clyde)) {
+                    clearAllIntervalsAndTimeouts();
+        			if (window.livesLeft.childElementCount === 1) {
+        				window.livesLeft.removeChild(livesLeft.lastElementChild);
+						$('.cd-popup').addClass('is-visible');
+                    	gameOverParagraph.innerHTML = "<h1>Game Over</h1><br><h4>SCORE: " + window.currentScore + "</h4><br><h3>Play again?</h3>";
+        			}
+        			else
+        				setTimeout(main, 0);
+                }
+                else {
+					if (blinky.getPanicMode() === true)
+		                blinky.setIsEatenByPacman((blinky.getPos().x === pacmanPos.x && blinky.getPos().y === pacmanPos.y) || blinky.isEatenByPacman);
+					if (pinky.getPanicMode() === true)
+		                pinky.setIsEatenByPacman((pinky.getPos().x === pacmanPos.x && pinky.getPos().y === pacmanPos.y) || pinky.isEatenByPacman);
+					if (inky.getPanicMode() === true)
+		                inky.setIsEatenByPacman((inky.getPos().x === pacmanPos.x && inky.getPos().y === pacmanPos.y) || inky.isEatenByPacman);
+					if (clyde.getPanicMode() === true)
+		                clyde.setIsEatenByPacman((clyde.getPos().x === pacmanPos.x && clyde.getPos().y === pacmanPos.y) || clyde.isEatenByPacman);
+				}
+                if (isValid(pacmanPos.x, pacmanPos.y - 1) && isValidClass(matrix[pacmanPos.x][pacmanPos.y - 1]))
+                    pacmanDirection = {x: 0, y: -1};
+                else if (pacmanDirection.x !== 0 && isValid(pacmanPos.x + pacmanDirection.x, pacmanPos.y - 1) && isValidClass(matrix[pacmanPos.x + pacmanDirection.x][pacmanPos.y - 1]))
+                    	newPacmanDirection = {x: 0, y: -1};
+            } else {
+                /* right swipe */
+                if (isGameOver(pacmanPos, blinky, pinky, inky, clyde)) {
+                    clearAllIntervalsAndTimeouts();
+        			if (window.livesLeft.childElementCount === 1) {
+        				window.livesLeft.removeChild(livesLeft.lastElementChild);
+						$('.cd-popup').addClass('is-visible');
+                    	gameOverParagraph.innerHTML = "<h1>Game Over</h1><br><h4>SCORE: " + window.currentScore + "</h4><br><h3>Play again?</h3>";
+        			}
+        			else
+        				setTimeout(main, 0);
+                }
+                else {
+					if (blinky.getPanicMode() === true)
+		                blinky.setIsEatenByPacman((blinky.getPos().x === pacmanPos.x && blinky.getPos().y === pacmanPos.y) || blinky.isEatenByPacman);
+					if (pinky.getPanicMode() === true)
+		                pinky.setIsEatenByPacman((pinky.getPos().x === pacmanPos.x && pinky.getPos().y === pacmanPos.y) || pinky.isEatenByPacman);
+					if (inky.getPanicMode() === true)
+		                inky.setIsEatenByPacman((inky.getPos().x === pacmanPos.x && inky.getPos().y === pacmanPos.y) || inky.isEatenByPacman);
+					if (clyde.getPanicMode() === true)
+		                clyde.setIsEatenByPacman((clyde.getPos().x === pacmanPos.x && clyde.getPos().y === pacmanPos.y) || clyde.isEatenByPacman);
+				}
+                if (isValid(pacmanPos.x, pacmanPos.y + 1) && isValidClass(matrix[pacmanPos.x][pacmanPos.y + 1]))
+                    pacmanDirection = {x: 0, y: 1};
+                else if (pacmanDirection.x !== 0 && isValid(pacmanPos.x + pacmanDirection.x, pacmanPos.y + 1) && isValidClass(matrix[pacmanPos.x + pacmanDirection.x][pacmanPos.y + 1]))
+                    	newPacmanDirection = {x: 0, y: 1};
+            }
+        } else {
+            if ( yDiff > 0 ) {
+                /* up swipe */
+                if (isGameOver(pacmanPos, blinky, pinky, inky, clyde)) {
+                    clearAllIntervalsAndTimeouts();
+        			if (window.livesLeft.childElementCount === 1) {
+        				window.livesLeft.removeChild(livesLeft.lastElementChild);
+						$('.cd-popup').addClass('is-visible');
+                    	gameOverParagraph.innerHTML = "<h1>Game Over</h1><br><h4>SCORE: " + window.currentScore + "</h4><br><h3>Play again?</h3>";
+        			}
+        			else
+        				setTimeout(main, 0);
+                }
+                else {
+					if (blinky.getPanicMode() === true)
+		                blinky.setIsEatenByPacman((blinky.getPos().x === pacmanPos.x && blinky.getPos().y === pacmanPos.y) || blinky.isEatenByPacman);
+					if (pinky.getPanicMode() === true)
+		                pinky.setIsEatenByPacman((pinky.getPos().x === pacmanPos.x && pinky.getPos().y === pacmanPos.y) || pinky.isEatenByPacman);
+					if (inky.getPanicMode() === true)
+		                inky.setIsEatenByPacman((inky.getPos().x === pacmanPos.x && inky.getPos().y === pacmanPos.y) || inky.isEatenByPacman);
+					if (clyde.getPanicMode() === true)
+		                clyde.setIsEatenByPacman((clyde.getPos().x === pacmanPos.x && clyde.getPos().y === pacmanPos.y) || clyde.isEatenByPacman);
+				}
+                if (isValid(pacmanPos.x - 1, pacmanPos.y) && isValidClass(matrix[pacmanPos.x - 1][pacmanPos.y]))
+                    pacmanDirection = {x: -1, y: 0};
+                else if (pacmanDirection.y !== 0 && isValid(pacmanPos.x - 1, pacmanPos.y + pacmanDirection.y) && isValidClass(matrix[pacmanPos.x - 1][pacmanPos.y + pacmanDirection.y]))
+                    	newPacmanDirection = {x: -1, y: 0};
+            } else {
+                /* down swipe */
+                if (isGameOver(pacmanPos, blinky, pinky, inky, clyde)) {
+                    clearAllIntervalsAndTimeouts();
+        			if (window.livesLeft.childElementCount === 1) {
+        				window.livesLeft.removeChild(livesLeft.lastElementChild);
+						$('.cd-popup').addClass('is-visible');
+                    	gameOverParagraph.innerHTML = "<h1>Game Over</h1><br><h4>SCORE: " + window.currentScore + "</h4><br><h3>Play again?</h3>";
+        			}
+					else
+        				setTimeout(main, 0);
+                }
+                else {
+					if (blinky.getPanicMode() === true)
+		                blinky.setIsEatenByPacman((blinky.getPos().x === pacmanPos.x && blinky.getPos().y === pacmanPos.y) || blinky.isEatenByPacman);
+					if (pinky.getPanicMode() === true)
+		                pinky.setIsEatenByPacman((pinky.getPos().x === pacmanPos.x && pinky.getPos().y === pacmanPos.y) || pinky.isEatenByPacman);
+					if (inky.getPanicMode() === true)
+		                inky.setIsEatenByPacman((inky.getPos().x === pacmanPos.x && inky.getPos().y === pacmanPos.y) || inky.isEatenByPacman);
+					if (clyde.getPanicMode() === true)
+		                clyde.setIsEatenByPacman((clyde.getPos().x === pacmanPos.x && clyde.getPos().y === pacmanPos.y) || clyde.isEatenByPacman);
+				}
+                if (isValid(pacmanPos.x + 1, pacmanPos.y) && isValidClass(matrix[pacmanPos.x + 1][pacmanPos.y]))
+                    pacmanDirection = {x: 1, y: 0};
+                else if (pacmanDirection.y !== 0 && isValid(pacmanPos.x + 1, pacmanPos.y + pacmanDirection.y) && isValidClass(matrix[pacmanPos.x + 1][pacmanPos.y + pacmanDirection.y]))
+                    	newPacmanDirection = {x: 1, y: 0};
+            }
+        }
+        /* reset values */
+        xDown = null;
+        yDown = null;
+    }//handleTouchMove() ends here
+
+    function main() {
+        var i, j;
+        var matrix = [], matrixCopy = [], levelInfo = [];
+    	clearAllIntervalsAndTimeouts();
+    	for (i = 0; i < timeouts.length; i++) {
+    	  clearTimeout(timeouts[i]);
+    	}
+
+        window.livesLeft = document.getElementById("livesLeft");
+        if (window.livesLeft.childElementCount > 0 && numberOfPillsLeft > 0 && currentScore > 0) {
+        	window.livesLeft.removeChild(livesLeft.lastElementChild);
+        	matrix = window.matrix;
+        	matrixCopy = window.matrixCopy;
+        }
+        else {
+        	if (window.livesLeft.childElementCount === 0)
+        		return;
+    		levelInfo = levelGenerator(currentLevel);
+    		matrix = levelInfo[0];
+    		window.numberOfPillsLeft = levelInfo[1];
+    		matrixCopy = levelGenerator(currentLevel)[0];
+    		window.matrix = matrix;
+    		window.matrixCopy = matrixCopy;
+        }
+        window.pacmanSpeed = 150;
+        window.pacmanDirection = {x: -1, y: 0};
+        window.pacmanMouthAngle = 360;
+        window.angleDiff = 45;
+        window.pacmanTimeout = null;
+
+        window.blinky.setPos(15, 14);//15, 14
+        window.blinky.setDirection(-1, 0);
+        window.blinky.setSpeed(165);
+        window.blinky.setPanicMode(false);
+        window.blinky.setPanicModeGettingOver(false);
+        window.blinky.setIsEatenByPacman(false);
+        window.blinky.setLeftHouse(false);
+        window.blinkyTimeout = null;
+
+        window.inky.setPos(15, 12);
+        window.inky.setDirection(-1, 0);
+        window.inky.setSpeed(165);
+        window.inky.setPanicMode(false);
+        window.inky.setPanicModeGettingOver(false);
+        window.inky.setIsEatenByPacman(false);
+        window.inky.setLeftHouse(false);
+        window.inkyTimeout = null;
+
+        window.pinky.setPos(15, 14);
+        window.pinky.setDirection(-1, 0);
+        window.pinky.setSpeed(165);
+        window.pinky.setPanicMode(false);
+        window.pinky.setPanicModeGettingOver(false);
+        window.pinky.setIsEatenByPacman(false);
+        window.pinky.setLeftHouse(false);
+        window.pinkyTimeout = null;
+
+        window.clyde.setPos(15, 16);
+        window.clyde.setDirection(-1, 0);
+        window.clyde.setSpeed(165);
+        window.clyde.setPanicMode(false);
+        window.clyde.setPanicModeGettingOver(false);
+        window.clyde.setIsEatenByPacman(false);
+        window.clyde.setLeftHouse(false);
+        window.clydeTimeout = null;
+
+        window.panicColour = "White";
+        window.panicTimeout = null;
+        window.panicModeGettingOverTimeout = null;
+        window.chaseMode = true;// chase pacman
+        window.chaseModeDuration = 20000;
+        window.chaseTimeout = null;
+        S1 = false;// same as scatterMode, make false to turn on chase mode
+        S2 = true;// same as chaseMode, make false to turn on scatter mode
+        window.scatterMode = false;// loop around their corners
+        window.scatterModeDuration = 7000;
+        window.scatterTimeout = null;
+        window.alternateGhostAnimate = 0.5;
+    	window.mainGhostPacmanTimeout = null;
+    	window.newPacmanDirection = null;
+
+        var pacmanPos = {x: 23, y: 14};//26, 15
+        window.pacmanPos = pacmanPos;
+        if (matrix[pacmanPos.x][pacmanPos.y] === 'pp')
+        	numberOfPillsLeft--;
+
+        matrixCopy[pacmanPos.x][pacmanPos.y] = 'pacmanUp360';
+
+        for(i = 0; i < ROW_MAX; i++) {
+            for(j = 0; j < COL_MAX; j++) {
+                drawLevelParts(matrix[i][j], {x: i, y: j});
+            }
+        }
+        blinky.move(matrix, matrixCopy, pacmanPos, {x: 11, y: 13}, inky, pinky, clyde);
+        pinky.move(matrix, matrixCopy, pacmanPos, {x: 15, y: 12}, blinky, inky, clyde);
+        inky.move(matrix, matrixCopy, pacmanPos, {x: 11, y: 14}, blinky, pinky, clyde);
+        clyde.move(matrix, matrixCopy, pacmanPos, {x: 14, y: 15}, blinky, pinky, inky);
+        if (pacmanDirection.x === -1 && pacmanDirection.y === 0)
+            matrixCopy[pacmanPos.x][pacmanPos.y] = "pacmanUp" + window.pacmanMouthAngle;
+        else if (pacmanDirection.x === 1 && pacmanDirection.y === 0)
+            matrixCopy[pacmanPos.x][pacmanPos.y] = "pacmanDown" + window.pacmanMouthAngle;
+        else if (pacmanDirection.x === 0 && pacmanDirection.y === -1)
+            matrixCopy[pacmanPos.x][pacmanPos.y] = "pacmanLeft" + window.pacmanMouthAngle;
+        else if (pacmanDirection.x === 0 && pacmanDirection.y === 1)
+            matrixCopy[pacmanPos.x][pacmanPos.y] = "pacmanRight" + window.pacmanMouthAngle;
+        drawLevelParts(matrixCopy[pacmanPos.x][pacmanPos.y], pacmanPos);
+
+        var ready = ['R', 'E', 'A', 'D', 'Y', '!'], k = 0;
+        for(i = 17, j = 11, k = 0; j < 17; j++, k++)
+        	document.getElementById(i + '_' + j).innerHTML = '<font color="ffff00">' + ready[k] + '</font>';
+
+        var widthHeightOfDivsInDivIjkl = document.getElementsByClassName('B4')[0].clientHeight;
+        var ijklDiv = document.getElementsByClassName('ijkl')[0];
+        var scoreLivesDisplayDiv = document.getElementById('scoreLivesDisplay');
+        scoreLivesDisplayDiv.style.width = 28 * widthHeightOfDivsInDivIjkl + 'px';
+        ijklDiv.style.width = 28 * widthHeightOfDivsInDivIjkl + 'px';
+        ijklDiv.style.height = 31 * widthHeightOfDivsInDivIjkl + 'px';
+
+        window.mainGhostPacmanTimeout = setTimeout(function() {
+        	for(i = 17, j = 11, k = 0; j < 17; j++, k++)
+        		document.getElementById(i + '_' + j).innerHTML = "";
+
+	        pacmanChangeDirection(matrix, pacmanPos, blinky, pinky, inky, clyde);
+
+			myPacmanNewFunction(matrix, matrixCopy, pacmanPos, blinky, pinky, inky, clyde);
+
+	        blinkyGhost(matrix, matrixCopy, pacmanPos);
+
+	        inkyGhost(matrix, matrixCopy, pacmanPos);
+
+	        pinkyGhost(matrix, matrixCopy, pacmanPos);
+
+	        clydeGhost(matrix, matrixCopy, pacmanPos);
+        }, 3000);
+
+    }//main() ends here
+
+    main();
+
+//   /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\   //
+//  /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\  //
+//  \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/  //
+//   \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/   //
+
+    // "Responsive" resizing using scale transform https://codepen.io/cRckls/pen/mcGCL
+    var pageWidth, pageHeight;
+
+    var basePage = {
+      width: 504,
+      height: 620,
+      scale: 1,
+      scaleX: 1,
+      scaleY: 1
+    };
+
+    $(function(){
+      var $page = $('.page_content');
+      
+      getPageSize();
+      scalePages($page, pageWidth, pageHeight);
+      
+      //using underscore to delay resize method till finished resizing window
+      $(window).resize(_.debounce(function () {
+        getPageSize();            
+        scalePages($page, pageWidth, pageHeight);
+      }, 150));
+      
+
+    function getPageSize() {
+      pageHeight = $('#container').height();
+      pageWidth = $('#container').width();
+    }
+
+    function scalePages(page, maxWidth, maxHeight) {            
+      var scaleX = 1, scaleY = 1;                      
+      scaleX = maxWidth / basePage.width;
+      scaleY = maxHeight / basePage.height;
+      basePage.scaleX = scaleX;
+      basePage.scaleY = scaleY;
+      basePage.scale = (scaleX > scaleY) ? scaleY : scaleX;
+
+      var newLeftPos = Math.abs(Math.floor(((basePage.width * basePage.scale) - maxWidth)/2));
+      var newTopPos = Math.abs(Math.floor(((basePage.height * basePage.scale) - maxHeight)/2));
+
+      page.attr('style', '-webkit-transform:scale(' + basePage.scale + ');left:' + newLeftPos + 'px;top:' + newTopPos + 'px;');
+    }
+    });
+
+    //play again
+    $(document.body).on('click', '.playAgain',  function () {
+		clearAllIntervalsAndTimeouts();
+		clearTimeout(window.mainGhostPacmanTimeout);
+		window.currentLevel = 1;
+    	window.currentScore = 0;
+    	livesLeft.innerHTML = '<span id="life1" class="pacmanLeft315"></span>'+
+        		'                <span id="life2" class="pacmanLeft315"></span>'+
+        		'                <span id="life3" class="pacmanLeft315"></span>'+
+        		'                <span id="life4" class="pacmanLeft315"></span>';
+    	setTimeout(main, 0);
+	});
+
+    jQuery(document).ready(function($){
+    	//close popup
+    	$('.cd-popup').on('click', function(event){
+    		if ( $(event.target).is('.cd-popup-close') || $(event.target).is('.cd-popup') ) {
+    			event.preventDefault();
+    			$(this).removeClass('is-visible');
+    		}
+    	});
+    	//close popup when clicking the esc keyboard button
+    	$(document).keyup(function(event){
+        	if (event.which=='27'){
+        		$('.cd-popup').removeClass('is-visible');
+    	    }
+        });
+    	//yes play again button
+    	$('#cd-popup-yesToPlayAgain').on('click', function(event){
+    		if ( $(event.target).is('#cd-popup-yesToPlayAgain') ) {
+    			event.preventDefault();
+    			$('.cd-popup').removeClass('is-visible');
+    			clearAllIntervalsAndTimeouts();
+    			window.currentLevel = 1;
+        		window.currentScore = 0;
+        		livesLeft.innerHTML = '<span id="life1" class="pacmanLeft315"></span>'+
+        		'                <span id="life2" class="pacmanLeft315"></span>'+
+        		'                <span id="life3" class="pacmanLeft315"></span>'+
+        		'                <span id="life4" class="pacmanLeft315"></span>';
+    			setTimeout(main, 0);
+    		}
+    	});
+    	//no play again button
+        $('#cd-popup-noToPlayAgain').on('click', function(event){
+    		if ( $(event.target).is('#cd-popup-noToPlayAgain') || $(event.target).is('.cd-popup') ) {
+    			event.preventDefault();
+    			$('.cd-popup').removeClass('is-visible');
+    			clearAllIntervalsAndTimeouts();
+    		}
+    	});
+    });
+    
+    //loading screen
+    function onReady(callback) {
+      var intervalId = window.setInterval(function() {
+        if (document.getElementsByTagName('body')[0] !== undefined) {
+          window.clearInterval(intervalId);
+          callback.call(this);
+        }
+      }, 3000);
+    }
+
+    function setVisible(selector, visible) {
+      document.querySelector(selector).style.display = visible ? 'block' : 'none';
+    }
+
+    onReady(function() {
+      setVisible('.page', true);
+      setVisible('#loading', false);
+    });
+</script>
+</html>

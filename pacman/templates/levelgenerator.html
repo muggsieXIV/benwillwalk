@@ -1,0 +1,185 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/pacman.css' %}">
+</head>
+<body>
+<style type="text/css">
+    /* Dropdown Button */
+    .dropbtn {
+        /*background-color: #4CAF50;*/
+        /*color: white;*/
+        padding: 16px;
+        font-size: 16px;
+        border: none;
+        cursor: pointer;
+    }
+
+    /* The container <div> - needed to position the dropdown content */
+    .dropdown {
+        position: relative;
+        display: inline-block;
+    }
+
+    /* Dropdown Content (Hidden by Default) */
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: #f9f9f9;
+        min-width: 510px;
+        z-index: 1;
+    }
+
+    /* Links inside the dropdown */
+    .dropdown-content a {
+        color: black;
+        padding: 12px 16px;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    /* Change color of dropdown links on hover */
+    .dropdown-content a:hover {background-color: #f1f1f1}
+
+    /* Show the dropdown menu on hover */
+    .dropdown:hover .dropdown-content {
+        display: block;
+    }
+
+    /* Change the background color of the dropdown button when the dropdown content is shown */
+    .dropdown:hover .dropbtn {
+        background-color: #3e8e41;
+    }
+</style>
+<div class="ijkl"></div>
+<div id="printLevelMatrix" style="background-color: darkred; width: 360px;">Print Level Matrix</div>
+</body>
+<script type="text/javascript">
+    str = "";
+    b = document.getElementsByTagName("body")[0];
+    ROW_MAX = 31;
+    COL_MAX = 28;
+    level = [
+        ['B1', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B7'],
+        ['B6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'B2'],
+        ['B6', 'pp', 'b1', 'b8', 'b8', 'b8', 'b8', 'b8', 'b7', 'pp', 'b1', 'b8', 'b8', 'b8', 'b8', 'b8', 'b8', 'b7', 'pp', 'b1', 'b8', 'b8', 'b8', 'b8', 'b8', 'b7', 'pp', 'B2'],
+        ['B6', 'PP', 'b2', 'ze', 'ze', 'ze', 'ze', 'ze', 'b6', 'pp', 'b2', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'b6', 'pp', 'b2', 'ze', 'ze', 'ze', 'ze', 'ze', 'b6', 'PP', 'B2'],
+        ['B6', 'pp', 'b3', 'b4', 'b4', 'b4', 'b4', 'b4', 'b5', 'pp', 'b3', 'b4', 'b4', 'b7', 'b1', 'b4', 'b4', 'b5', 'pp', 'b3', 'b4', 'b4', 'b4', 'b4', 'b4', 'b5', 'pp', 'B2'],
+        ['B6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'b2', 'b6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'B2'],
+        ['B6', 'pp', 'b1', 'b8', 'b8', 'b7', 'pp', 'b1', 'b7', 'pp', 'b1', 'b7', 'pp', 'b2', 'b6', 'pp', 'b1', 'b7', 'pp', 'b1', 'b7', 'pp', 'b1', 'b8', 'b8', 'b7', 'pp', 'B2'],
+        ['B6', 'pp', 'b3', 'b4', 'b4', 'b5', 'pp', 'B2', 'B6', 'pp', 'b2', 'b6', 'pp', 'b2', 'b6', 'pp', 'b2', 'b6', 'pp', 'B2', 'B6', 'pp', 'b3', 'b4', 'b4', 'b5', 'pp', 'B2'],
+        ['B6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'B2', 'B6', 'pp', 'b2', 'b6', 'pp', 'b2', 'b6', 'pp', 'b2', 'b6', 'pp', 'B2', 'B6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'B2'],
+        ['B3', 'B8', 'B8', 'B8', 'B8', 'b7', 'pp', 'B2', 'B6', 'pp', 'b2', 'b6', 'pp', 'b2', 'b6', 'pp', 'b2', 'b6', 'pp', 'B2', 'B6', 'pp', 'b1', 'B8', 'B8', 'B8', 'B8', 'B5'],
+        ['ze', 'ze', 'ze', 'ze', 'ze', 'B6', 'pp', 'B2', 'B6', 'pp', 'b3', 'b5', 'pp', 'b3', 'b5', 'pp', 'b3', 'b5', 'pp', 'B2', 'B6', 'pp', 'B2', 'ze', 'ze', 'ze', 'ze', 'ze'],
+        ['B4', 'B4', 'B4', 'B4', 'B4', 'b5', 'pp', 'B2', 'B6', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'B2', 'B6', 'pp', 'b3', 'B4', 'B4', 'B4', 'B4', 'B4'],
+        ['ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'B2', 'B6', 'ze', 'H1', 'B8', 'L8', 'H8', 'H8', 'R8', 'B8', 'H7', 'ze', 'B2', 'B6', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze'],
+        ['B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B1', 'B6', 'ze', 'B2', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'B6', 'ze', 'B2', 'B7', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8'],
+        ['ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'b6', 'B6', 'ze', 'B2', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'B6', 'ze', 'B2', 'B2', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze'],
+        ['B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B3', 'B6', 'ze', 'B2', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'B6', 'ze', 'B2', 'B5', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4'],
+        ['ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'B2', 'B6', 'ze', 'H3', 'B4', 'B4', 'B4', 'B4', 'B4', 'B4', 'H5', 'ze', 'B2', 'B6', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze'],
+        ['B8', 'B8', 'B8', 'B8', 'B8', 'b7', 'pp', 'B2', 'B6', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'ze', 'B2', 'B6', 'pp', 'b1', 'B8', 'B8', 'B8', 'B8', 'B8'],
+        ['ze', 'ze', 'ze', 'ze', 'ze', 'B6', 'pp', 'B2', 'B3', 'B8', 'B8', 'b7', 'ze', 'b1', 'b7', 'ze', 'b1', 'B8', 'B8', 'B5', 'B6', 'pp', 'B2', 'ze', 'ze', 'ze', 'ze', 'ze'],
+        ['B1', 'B4', 'B4', 'B4', 'B4', 'b5', 'pp', 'b3', 'B4', 'B4', 'B4', 'b5', 'ze', 'b3', 'b5', 'ze', 'b3', 'B4', 'B4', 'B4', 'b5', 'pp', 'b3', 'B4', 'B4', 'B4', 'B4', 'B7'],
+        ['B6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'B2'],
+        ['B6', 'pp', 'b1', 'b8', 'b8', 'b8', 'b8', 'b8', 'b7', 'pp', 'b1', 'b8', 'b8', 'b8', 'b8', 'b8', 'b8', 'b7', 'pp', 'b1', 'b8', 'b8', 'b8', 'b8', 'b8', 'b7', 'pp', 'B2'],
+        ['B6', 'pp', 'b3', 'b4', 'b4', 'b4', 'b4', 'b7', 'b6', 'pp', 'b3', 'b4', 'b4', 'b4', 'b4', 'b4', 'b4', 'b5', 'pp', 'b2', 'b1', 'b4', 'b4', 'b4', 'b4', 'b5', 'pp', 'B2'],
+        ['B6', 'PP', 'pp', 'pp', 'pp', 'pp', 'pp', 'b2', 'b6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'b2', 'b6', 'pp', 'pp', 'pp', 'pp', 'pp', 'PP', 'B2'],
+        ['E3', 'b8', 'b7', 'pp', 'b1', 'b7', 'pp', 'b2', 'b6', 'pp', 'b1', 'b7', 'pp', 'b1', 'b7', 'pp', 'b1', 'b7', 'pp', 'b2', 'b6', 'pp', 'b1', 'b7', 'pp', 'b1', 'b8', 'E5'],
+        ['C8', 'b4', 'b5', 'pp', 'b3', 'b5', 'pp', 'b3', 'b5', 'pp', 'b2', 'b6', 'pp', 'B2', 'B6', 'pp', 'b2', 'b6', 'pp', 'b3', 'b5', 'pp', 'b3', 'b5', 'pp', 'b3', 'b4', 'C9'],
+        ['B6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'b2', 'b6', 'pp', 'B2', 'B6', 'pp', 'b2', 'b6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'B2'],
+        ['B6', 'pp', 'b1', 'b8', 'b8', 'b8', 'b8', 'b8', 'b8', 'b8', 'b5', 'b6', 'pp', 'B2', 'B6', 'pp', 'b2', 'b3', 'b8', 'b8', 'b8', 'b8', 'b8', 'b8', 'b8', 'b7', 'pp', 'B2'],
+        ['B6', 'pp', 'b3', 'b4', 'b4', 'b4', 'b4', 'b4', 'b4', 'b4', 'b4', 'b5', 'pp', 'B2', 'B6', 'pp', 'b3', 'b4', 'b4', 'b4', 'b4', 'b4', 'b4', 'b4', 'b4', 'b5', 'pp', 'B2'],
+        ['B6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'B2', 'B6', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'B2'],
+        ['B3', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B5', 'B3', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B8', 'B5']
+    ];
+
+//    <div class="dropdown">
+//        <div class="dropbtn B8">Dropdown</div>
+//        <div class="dropdown-content">
+//            <a class="changeBackground" href="#">B1</a>
+//            <a class="changeBackground" href="#">B2</a>
+//            <a class="changeBackground" href="#">B3</a>
+//            <a class="changeBackground" href="#">B4</a>
+//            <a class="changeBackground" href="#">B5</a>
+//            <a class="changeBackground" href="#">B6</a>
+//            <a class="changeBackground" href="#">B7</a>
+//            <a class="changeBackground" href="#">B8</a>
+//            <a class="changeBackground" href="#">b1</a>
+//            <a class="changeBackground" href="#">b2</a>
+//            <a class="changeBackground" href="#">b3</a>
+//            <a class="changeBackground" href="#">b4</a>
+//            <a class="changeBackground" href="#">b5</a>
+//            <a class="changeBackground" href="#">b6</a>
+//            <a class="changeBackground" href="#">b7</a>
+//            <a class="changeBackground" href="#">b8</a>
+//            <a class="changeBackground" href="#">C8</a>
+//            <a class="changeBackground" href="#">C9</a>
+//            <a class="changeBackground" href="#">E1</a>
+//            <a class="changeBackground" href="#">E3</a>
+//            <a class="changeBackground" href="#">E5</a>
+//            <a class="changeBackground" href="#">E7</a>
+//            <a class="changeBackground" href="#">pp</a>
+//            <a class="changeBackground" href="#">PP</a>
+//            <a class="changeBackground" href="#">ze</a>
+//        </div>
+//    </div>
+
+    function drawLevelParts(classAtPos, pos) {
+        var posDiv = document.getElementById(pos.x + '_' + pos.y);
+        if (posDiv === null) {
+            var ijkl = document.getElementsByClassName('ijkl')[0];
+            ijkl.innerHTML += "<div class=\"dropdown\"><div class=\"" + classAtPos + "\" id=\"" + pos.x + "_" + pos.y + "\"></div><div class=\"dropdown-content\">\n" + "<a class=\"changeBackground\" href=\"#\">B1</a>" + "<a class=\"changeBackground\" href=\"#\">B2</a>" + "<a class=\"changeBackground\" href=\"#\">B3</a>" + "<a class=\"changeBackground\" href=\"#\">B4</a>" + "<a class=\"changeBackground\" href=\"#\">B5</a>" + "<a class=\"changeBackground\" href=\"#\">B6</a>" + "<a class=\"changeBackground\" href=\"#\">B7</a>" + "<a class=\"changeBackground\" href=\"#\">B8</a>" + "<a class=\"changeBackground\" href=\"#\">b1</a>" + "<a class=\"changeBackground\" href=\"#\">b2</a>" + "<a class=\"changeBackground\" href=\"#\">b3</a>" + "<a class=\"changeBackground\" href=\"#\">b4</a>" + "<a class=\"changeBackground\" href=\"#\">b5</a>" + "<a class=\"changeBackground\" href=\"#\">b6</a>" + "<a class=\"changeBackground\" href=\"#\">b7</a>" + "<a class=\"changeBackground\" href=\"#\">b8</a>" + "<a class=\"changeBackground\" href=\"#\">C8</a>" + "<a class=\"changeBackground\" href=\"#\">C9</a>" + "<a class=\"changeBackground\" href=\"#\">E1</a>" + "<a class=\"changeBackground\" href=\"#\">E3</a>" + "<a class=\"changeBackground\" href=\"#\">E5</a>" + "<a class=\"changeBackground\" href=\"#\">E7</a>" + "<a class=\"changeBackground\" href=\"#\">pp</a>" + "<a class=\"changeBackground\" href=\"#\">PP</a>" + "<a class=\"changeBackground\" href=\"#\">ze</a>" + "</div>" + "</div>";
+            return;
+        }
+        posDiv.removeAttribute("class");
+        posDiv.setAttribute("class", classAtPos);
+    }
+
+    for(i = 0; i < ROW_MAX; i++) {
+        for(j = 0; j < COL_MAX; j++) {
+            drawLevelParts(level[i][j], {x: i, y: j});
+        }
+    }
+
+    var button = document.getElementById('printLevelMatrix');
+    button.addEventListener('click', function() {
+        str += "[<br>";
+        for(i = 0; i < ROW_MAX; i++) {
+            str += "[";
+            for(j = 0; j < COL_MAX; j++) {
+                if (j === COL_MAX -1) {
+                    str += "'" + level[i][j] + "'";
+                    continue;
+                }
+                str += "'" + level[i][j] + "', ";
+            }
+            if (i === ROW_MAX -1) {
+                str += "]<br>";
+                continue;
+            }
+            str += "],<br>";
+        }
+        str += "]";
+        b.innerHTML += str;
+    });
+
+    var setDropdownClass = document.getElementsByClassName('changeBackground');
+
+    for(i = 0; i < setDropdownClass.length; i++) {
+        setDropdownClass[i].addEventListener('click', function() {
+//            console.log(this);
+//            console.log(this.parentElement);
+//            console.log(this.parentElement.parentElement.childNodes[0]);
+            this.parentElement.parentElement.childNodes[0].removeAttribute("class");
+            this.parentElement.parentElement.childNodes[0].setAttribute("class", this.innerText);
+            id = this.parentElement.parentElement.childNodes[0].id;
+            console.log(id);
+            level[id.split("_")[0]][id.split("_")[1]] = this.innerText;
+        });
+    }
+
+</script>
+</html>
