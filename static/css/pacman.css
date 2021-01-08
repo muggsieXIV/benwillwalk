@@ -1,0 +1,488 @@
+@font-face {
+  font-family: 'pacmanFont';
+  src: url('../templates/joystix monospace.ttf');
+}
+
+@font-face {
+  font-family: 'pacmanGameTitle';
+  src: url('../templates/crackman.ttf');
+}
+
+html,
+body {
+  font-family: pacmanFont;
+  color: white;
+  font-size: 18pt;
+  background-color: #101010;
+  height: 100%;
+  overflow: hidden;
+}
+
+/*loading screen*/
+.page {
+
+}
+
+#loading {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  width: 100vw;
+  height: 100vh;
+  background-color: #FFF;
+  background-image: url("../img/giphy(3).gif");
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+#loading h1 {
+  font-family: 'pacmanGameTitle';
+  color: gold;
+  font-size: 80pt;
+  font-weight: 100;
+  text-align: center;
+  letter-spacing: 2px;
+}
+
+@media all and (orientation:portrait) {
+  #loading {
+    background-size: auto 24vh;
+  }
+  #loading h1 {
+    font-size: 110pt;
+    margin-top: 50px;
+  }
+}
+
+@media all and (orientation:landscape) {
+  #loading {
+    background-size: 30vh auto;
+  }
+  #loading h1 {
+    margin-top: 14px;
+  }
+}
+
+/*"Responsive" resizing using scale transform https://codepen.io/cRckls/pen/mcGCL*/
+#container {
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  right: 0px;
+  bottom: 0px;
+  background-color: #101010;
+}
+.page_content {
+  width: 504px;
+  height: 620px;
+  display: flex;
+  flex-direction: column;
+  -ms-transform-origin: top left;
+  -webkit-transform-origin: top left;
+  transform-origin: top left;
+  -webkit-transition: all 0ms ease-in-out !important;
+  transition: all 0ms ease-in-out !important;
+  position: absolute;
+}
+
+#scoreLivesDisplay {
+  display: flex;
+  justify-content: space-between;
+}
+
+.ijkl {
+  display: flex;
+  flex-wrap: wrap;
+  width: 504px;
+  height: 558px;
+}
+
+#livesLeft {
+  margin-top: 4px;
+  display: flex;
+  width: fit-content;
+}
+
+span#livesLeft .pacmanLeft315 {
+  margin-right: 7px;
+}
+
+.playAgain {
+  color: red;
+  text-decoration: underline;
+  justify-content: center;
+  width: auto;
+  align-self: center;
+  display: flex;
+  opacity: 0.9;
+  transition: 0.3s;
+}
+
+.playAgain:hover {
+  cursor: pointer;
+  opacity: 1;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+ol, ul {
+  list-style: none;
+}
+
+a {
+  color: #35a785;
+  text-decoration: none;
+}
+
+.img-replace {
+  /* replace text with an image */
+  display: inline-block;
+  overflow: hidden;
+  text-indent: 100%;
+  color: transparent;
+  white-space: nowrap;
+}
+
+header {
+  height: 200px;
+  line-height: 200px;
+  text-align: center;
+  background-color: #5e6e8d;
+  color: #FFF;
+}
+header h1 {
+  font-size: 20px;
+  font-size: 1.25rem;
+}
+
+.cd-popup-trigger {
+  display: block;
+  width: 170px;
+  height: 50px;
+  line-height: 50px;
+  margin: 3em auto;
+  text-align: center;
+  color: #FFF;
+  font-size: 14px;
+  font-size: 0.875rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  border-radius: 50em;
+  background: #35a785;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.07);
+}
+/*@media only screen and (min-width: 1170px) {
+  .cd-popup-trigger {
+    margin: 6em auto;
+  }
+}*/
+
+/* -------------------------------- 
+xpopup 
+-------------------------------- */
+.cd-popup {
+  z-index: 2;
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 100%;
+  /*background-color: rgba(94, 110, 141, 0.9);*/
+  opacity: 0;
+  visibility: hidden;
+  -webkit-transition: opacity 0.3s 0s, visibility 0s 0.3s;
+  -moz-transition: opacity 0.3s 0s, visibility 0s 0.3s;
+  transition: opacity 0.3s 0s, visibility 0s 0.3s;
+}
+.cd-popup.is-visible {
+  opacity: 1;
+  visibility: visible;
+  -webkit-transition: opacity 0.3s 0s, visibility 0s 0s;
+  -moz-transition: opacity 0.3s 0s, visibility 0s 0s;
+  transition: opacity 0.3s 0s, visibility 0s 0s;
+}
+
+.cd-popup-container {
+  color: #101010;
+  position: relative;
+  width: 90%;
+  max-width: 400px;
+  margin: 4em auto;
+  background: #FFF;
+  border-radius: .25em .25em .4em .4em;
+  text-align: center;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  -webkit-transform: translateY(-40px);
+  -moz-transform: translateY(-40px);
+  -ms-transform: translateY(-40px);
+  -o-transform: translateY(-40px);
+  transform: translateY(-40px);
+  /* Force Hardware Acceleration in WebKit */
+  -webkit-backface-visibility: hidden;
+  -webkit-transition-property: -webkit-transform;
+  -moz-transition-property: -moz-transform;
+  transition-property: transform;
+  -webkit-transition-duration: 0.3s;
+  -moz-transition-duration: 0.3s;
+  transition-duration: 0.3s;
+}
+.cd-popup-container p {
+  padding: 3em 1em;
+}
+.cd-popup-container .cd-buttons:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+.cd-popup-container .cd-buttons li {
+  float: left;
+  width: 50%;
+  list-style: none;
+}
+.cd-popup-container .cd-buttons a {
+  display: block;
+  height: 60px;
+  line-height: 60px;
+  text-transform: uppercase;
+  color: #FFF;
+  -webkit-transition: background-color 0.2s;
+  -moz-transition: background-color 0.2s;
+  transition: background-color 0.2s;
+}
+.cd-popup-container .cd-buttons li:first-child a {
+  background: #fc7169;
+  border-radius: 0 0 0 .25em;
+}
+.no-touch .cd-popup-container .cd-buttons li:first-child a:hover {
+  background-color: #fc8982;
+}
+.cd-popup-container .cd-buttons li:last-child a {
+  background: #b6bece;
+  border-radius: 0 0 .25em 0;
+}
+.no-touch .cd-popup-container .cd-buttons li:last-child a:hover {
+  background-color: #c5ccd8;
+}
+.cd-popup-container .cd-popup-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 30px;
+  height: 30px;
+}
+.cd-popup-container .cd-popup-close::before, .cd-popup-container .cd-popup-close::after {
+  content: '';
+  position: absolute;
+  top: 12px;
+  width: 14px;
+  height: 3px;
+  background-color: #8f9cb5;
+}
+.cd-popup-container .cd-popup-close::before {
+  -webkit-transform: rotate(45deg);
+  -moz-transform: rotate(45deg);
+  -ms-transform: rotate(45deg);
+  -o-transform: rotate(45deg);
+  transform: rotate(45deg);
+  left: 8px;
+}
+.cd-popup-container .cd-popup-close::after {
+  -webkit-transform: rotate(-45deg);
+  -moz-transform: rotate(-45deg);
+  -ms-transform: rotate(-45deg);
+  -o-transform: rotate(-45deg);
+  transform: rotate(-45deg);
+  right: 8px;
+}
+.is-visible .cd-popup-container {
+  -webkit-transform: translateY(0);
+  -moz-transform: translateY(0);
+  -ms-transform: translateY(0);
+  -o-transform: translateY(0);
+  transform: translateY(0);
+}
+/*@media only screen and (min-width: 1170px) {
+  .cd-popup-container {
+    margin: 8em auto;
+  }
+}*/
+
+
+
+.pac-man-logo, .pacmanbig270, .pacmanbig315, .pacmanbig360, .B1, 
+.B2, .B3, .B4, .B5, .B6, 
+.B7, .B8, .C8, .C9, .E1, 
+.E3, .E5, .E7, .H1, .H3, 
+.H5, .H7, .H8, .L8, .PP, 
+.R8, .blinkyDown1, .blinkyDown2, .blinkyLeft1, .blinkyLeft2, 
+.blinkyRight1, .blinkyRight2, .blinkyUp1, .blinkyUp2, .clydeDown1, 
+.clydeDown2, .clydeLeft1, .clydeLeft2, .clydeRight1, .clydeRight2, 
+.clydeUp1, .clydeUp2, .eyesDown, .eyesLeft, .eyesRight, 
+.eyesUp, .ghostBlue1, .ghostBlue2, .ghostWhite1, .ghostWhite2, 
+.inkyDown1, .inkyDown2, .inkyLeft1, .inkyLeft2, .inkyRight1, 
+.inkyRight2, .inkyUp1, .inkyUp2, .pinkyDown1, .pinkyDown2, 
+.pinkyLeft1, .pinkyLeft2, .pinkyRight1, .pinkyRight2, .pinkyUp1, 
+.pinkyUp2, .b1, .b2, .b3, .b4, 
+.b5, .b6, .b7, .b8, .pp, 
+.ze, .apple, .greenfruit, .key, .orange, 
+.pacmanDown270, .pacmanDown315, .pacmanDown360, .pacmanLeft270, .pacmanLeft315, 
+.pacmanLeft360, .pacmanRight270, .pacmanRight315, .pacmanRight360, .pacmanUp270, 
+.pacmanUp315, .pacmanUp360, .pear, .strawberry, .cherry, 
+.flower
+{ width: 18px; height: 18px; max-width: 100%; background-size: 100%; background-image: url('../img/pacman-sprite.png'); color: #7fffd4;/*aquamarine*/ }
+
+.text-r, .text-e, .text-a, .text-d, .text-y, .text-exclamationMark
+{ width: 18px; height: 18px; color: #ffff00; }
+.zero, .one, .two, .three, .four, .five, .six, .seven, .eight, .nine
+{ width: 18px; height: 18px; color: #7fffd4; /* aquamarine */ }
+
+.pac-man-logo { background-position: 0 0%; background-size: 100%; }
+.pacmanbig270 { background-position: 0 2.320385%; background-size: 100%; }H
+.pacmanbig315 { background-position: 0 4.520454%; background-size: 100%; }
+.pacmanbig360 { background-position: 0 6.720523%; background-size: 100%; }
+.B1 { background-position: 0 8.817533%; background-size: 221.428571%; }
+.B2 { background-position: 0 9.836901%; background-size: 221.428571%; }
+.B3 { background-position: 0 10.856269%; background-size: 221.428571%; }
+.B4 { background-position: 0 11.875637%; background-size: 221.428571%; }
+.B5 { background-position: 0 12.895005%; background-size: 221.428571%; }
+.B6 { background-position: 0 13.914373%; background-size: 221.428571%; }
+.B7 { background-position: 0 14.933741%; background-size: 221.428571%; }
+.B8 { background-position: 0 15.953109%; background-size: 221.428571%; }
+.C8 { background-position: 0 16.972477%; background-size: 221.428571%; }
+.C9 { background-position: 0 17.991845%; background-size: 221.428571%; }
+.E1 { background-position: 0 19.011213%; background-size: 221.428571%; }
+.E3 { background-position: 0 20.030581%; background-size: 221.428571%; }
+.E5 { background-position: 0 21.049949%; background-size: 221.428571%; }
+.E7 { background-position: 0 22.069317%; background-size: 221.428571%; }
+.H1 { background-position: 0 23.088685%; background-size: 221.428571%; }
+.H3 { background-position: 0 24.108053%; background-size: 221.428571%; }
+.H5 { background-position: 0 25.127421%; background-size: 221.428571%; }
+.H7 { background-position: 0 26.146789%; background-size: 221.428571%; }
+.H8 { background-position: 0 27.166157%; background-size: 221.428571%; }
+.L8 { background-position: 0 28.185525%; background-size: 221.428571%; }
+.PP { background-position: 0 29.204893%; background-size: 221.428571%; }
+.R8 { background-position: 0 30.224261%; background-size: 221.428571%; }
+.b1 { background-position: 0 72.018349%; background-size: 221.428571%; }
+.b2 { background-position: 0 73.037717%; background-size: 221.428571%; }
+.b3 { background-position: 0 74.057085%; background-size: 221.428571%; }
+.b4 { background-position: 0 75.076453%; background-size: 221.428571%; }
+.b5 { background-position: 0 76.095821%; background-size: 221.428571%; }
+.b6 { background-position: 0 77.115189%; background-size: 221.428571%; }
+.b7 { background-position: 0 78.134557%; background-size: 221.428571%; }
+.b8 { background-position: 0 79.153925%; background-size: 221.428571%; }
+.pp { background-position: 0 80.173293%; background-size: 221.428571%; }
+.ze { background-position: 0 81.192661%; background-size: 221.428571%; }
+.blinkyDown1 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 31.243629%; background-size: 221.428571%; }
+.blinkyDown2 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 32.262997%; background-size: 221.428571%; }
+.blinkyLeft1 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 33.282365%; background-size: 221.428571%; }
+.blinkyLeft2 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 34.301733%; background-size: 221.428571%; }
+.blinkyRight1 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 35.321101%; background-size: 221.428571%; }
+.blinkyRight2 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 36.340469%; background-size: 221.428571%; }
+.blinkyUp1 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 37.359837%; background-size: 221.428571%; }
+.blinkyUp2 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 38.379205%; background-size: 221.428571%; }
+.clydeDown1 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 39.398573%; background-size: 221.428571%; }
+.clydeDown2 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 40.417941%; background-size: 221.428571%; }
+.clydeLeft1 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 41.437309%; background-size: 221.428571%; }
+.clydeLeft2 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 42.456677%; background-size: 221.428571%; }
+.clydeRight1 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 43.476045%; background-size: 221.428571%; }
+.clydeRight2 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 44.495413%; background-size: 221.428571%; }
+.clydeUp1 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 45.514781%; background-size: 221.428571%; }
+.clydeUp2 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 46.534149%; background-size: 221.428571%; }
+.eyesDown { padding: 6px; margin: -6px; z-index: 1; background-position: 0 47.553517%; background-size: 221.428571%; }
+.eyesLeft { padding: 6px; margin: -6px; z-index: 1; background-position: 0 48.572885%; background-size: 221.428571%; }
+.eyesRight { padding: 6px; margin: -6px; z-index: 1; background-position: 0 49.592253%; background-size: 221.428571%; }
+.eyesUp { padding: 6px; margin: -6px; z-index: 1; background-position: 0 50.611621%; background-size: 221.428571%; }
+.ghostBlue1 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 51.630989%; background-size: 221.428571%; }
+.ghostBlue2 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 52.650357%; background-size: 221.428571%; }
+.ghostWhite1 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 53.669725%; background-size: 221.428571%; }
+.ghostWhite2 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 54.689093%; background-size: 221.428571%; }
+.inkyDown1 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 55.708461%; background-size: 221.428571%; }
+.inkyDown2 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 56.727829%; background-size: 221.428571%; }
+.inkyLeft1 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 57.747197%; background-size: 221.428571%; }
+.inkyLeft2 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 58.766565%; background-size: 221.428571%; }
+.inkyRight1 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 59.785933%; background-size: 221.428571%; }
+.inkyRight2 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 60.805301%; background-size: 221.428571%; }
+.inkyUp1 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 61.824669%; background-size: 221.428571%; }
+.inkyUp2 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 62.844037%; background-size: 221.428571%; }
+.pinkyDown1 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 63.863405%; background-size: 221.428571%; }
+.pinkyDown2 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 64.882773%; background-size: 221.428571%; }
+.pinkyLeft1 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 65.902141%; background-size: 221.428571%; }
+.pinkyLeft2 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 66.921509%; background-size: 221.428571%; }
+.pinkyRight1 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 67.940877%; background-size: 221.428571%; }
+.pinkyRight2 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 68.960245%; background-size: 221.428571%; }
+.pinkyUp1 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 69.979613%; background-size: 221.428571%; }
+.pinkyUp2 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 70.998981%; background-size: 221.428571%; }
+.apple { padding: 6px; margin: -6px; z-index: 1; background-position: 0 82.156197%; background-size: 238.461538%; }
+.greenfruit { padding: 6px; margin: -6px; z-index: 1; background-position: 0 83.106961%; background-size: 238.461538%; }
+.key { padding: 6px; margin: -6px; z-index: 1; background-position: 0 84.057725%; background-size: 238.461538%; }
+.orange { padding: 6px; margin: -6px; z-index: 1; background-position: 0 85.008489%; background-size: 238.461538%; }
+.pacmanDown270 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 85.959253%; background-size: 238.461538%; }
+.pacmanDown315 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 86.910017%; background-size: 238.461538%; }
+.pacmanDown360 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 87.860781%; background-size: 238.461538%; }
+.pacmanLeft270 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 88.811545%; background-size: 238.461538%; }
+.pacmanLeft315 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 89.762309%; background-size: 238.461538%; }
+.pacmanLeft360 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 90.713073%; background-size: 238.461538%; }
+.pacmanRight270 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 91.663837%; background-size: 238.461538%; }
+.pacmanRight315 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 92.614601%; background-size: 238.461538%; }
+.pacmanRight360 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 93.565365%; background-size: 238.461538%; }
+.pacmanUp270 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 94.516129%; background-size: 238.461538%; }
+.pacmanUp315 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 95.450687%; background-size: 238.461538%; }
+.pacmanUp360 { padding: 6px; margin: -6px; z-index: 1; background-position: 0 96.400679%; background-size: 238.461538%; }
+.pear { padding: 6px; margin: -6px; z-index: 1; background-position: 0 97.351443%; background-size: 238.461538%; }
+.strawberry { padding: 6px; margin: -6px; z-index: 1; background-position: 0 98.302207%; background-size: 238.461538%; }
+.cherry { padding: 6px; margin: -6px; z-index: 1; background-position: 0 99.185612%; background-size: 258.333333%; }
+.flower { padding: 6px; margin: -6px; z-index: 1; background-position: 0 100%; background-size: 281.818182%; }
+.zero:before {
+  content: "0";
+}
+.one:before {
+  content: "1";
+}
+.two:before {
+  content: "2";
+}
+.three:before {
+  content: "3";
+}
+.four:before {
+  content: "4";
+}
+.five:before {
+  content: " 5";
+}
+.six:before {
+  content: " 6";
+}
+.seven:before {
+  content: " 7";
+}
+.eight:before {
+  content: " 8";
+}
+.nine:before {
+  content: " 9";
+}
+.text-r:before {
+  content: " R";
+}
+.text-e:before {
+  content: " E";
+}
+.text-a:before {
+  content: " A";
+}
+.text-d:before {
+  content: " D";
+}
+.text-y:before {
+  content: " Y";
+}
+.text-exclamationMark:before {
+  content: " !";
+}
