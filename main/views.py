@@ -41,3 +41,12 @@ def success(request):
 
 def failed(request):
     return render(request, 'failed.html')
+
+def photography(request):
+    return render(request, 'inner-page.html')
+
+def graphicDesign(request):
+    return render(request, 'portfolio-details.html')
+
+def articles(request):
+    return render(request, 'about-inner-page.html')

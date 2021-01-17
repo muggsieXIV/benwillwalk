@@ -11,4 +11,7 @@ urlpatterns = [
     path('subscribe', views.subscribe),
     path('success', views.success),
     path('failed', views.failed),
+    path('photography', views.photography),
+    path('articles', views.articles),
+    path('graphic-design', views.graphicDesign),
 ]

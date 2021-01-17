@@ -21,7 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-
+SECRET_KEY = 'ap-^a$vfnck2u(4cnlm7o_nie4lx5k&lx!$38ia6b)lq6*rsp0'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -78,22 +78,19 @@ WSGI_APPLICATION = 'benwillwalk.wsgi.application'
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
 DATABASES = {
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.mysql',
-    #     'NAME': 'benwillwalk',
-    #     'USER': 'root',
-    #     'PASSWORD': 'benwillwalkPASS#Rabbjsi93yyj',
-    #     'HOST': '127.0.0.1',
-    #     'PORT': '3306',
-    #     'OPTIONS': {
-    #         'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"
-    #     }
-    # }
     'default': {
+        # 'ENGINE': 'django.db.backends.mysql',
+        # 'NAME': 'benwillwalk',
+        # 'USER': 'root',
+        # 'PASSWORD': 'benwillwalkPASS#Rabbjsi93yyj',
+        # 'HOST': '127.0.0.1',
+        # 'PORT': '3306',
+        # 'OPTIONS': {
+        #     'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"
+        # }
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': 'mydatabase',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
-
 }
 
 
