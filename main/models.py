@@ -47,3 +47,21 @@ class Subscriber(models.Model):
         ordering = ("created_at", "email")
     def __str__(self):
         return f"{self.email}, {str(self.created_at)}"
+
+
+class Project(models.Model):
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    image_one = models.ImageField(upload_to='static/assets/portfolio-detail')
+    image_two = models.ImageField(upload_to='static/assets/portfolio-detail')
+    image_three = models.ImageField(upload_to='static/assets/portfolio-detail')
+    category = models.CharField(max_length=100)
+    client = models.CharField(max_length=150)
+    project_date = models.CharField(max_length=100)
+    project_url = models.CharField(max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        ordering = ("title", "description", "image_one", "image_two", "image_three", "category", "client", "project_date", "project_url", "created_at")
+    def __str__(self):
+        return f"{self.title}, {self.description}, {self.image_one}, {self.image_two}, {self.image_three}, {self.category}, {self.client}, {self.project_date}, {self.project_url}"

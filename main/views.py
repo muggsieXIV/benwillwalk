@@ -1,12 +1,22 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from .models import Client, Subscriber
+from .models import Client, Subscriber, Project
 from datetime import datetime
+
 
 
 # Create your views here.
 def index(request):
     return render(request, 'index.html')
+
+
+def portfolioDetails(request, project_id):
+    context = {
+        'project': Project.objects.get(id=project_id)
+    }
+    
+    return render(request, 'portfolio-details.html', context)
+
 
 def aboutbww(request):
     return render(request, 'aboutBWW.html')

@@ -1,16 +1,14 @@
-// --------------------------------------------------- VARIÁVEIS ---------------------------------------------------  
-
-// Depuração
+// Debug
 var debugmode = false;
 
-// Estados do jogo
+// Game states
 var states = Object.freeze({
     SplashScreen: 0,
     GameScreen: 1,
     ScoreScreen: 2
 });
 
-// Variáveis de lógica
+// Logic variables
 var currentscore;
 var gravity = 0.25;
 var velocity = 0;
@@ -18,11 +16,11 @@ var position = 180;
 var rotation = 0;
 var jump = -4.6;
 
-// Pontuação
+// Punctuation
 var score = 0;
 var highscore = 0;
 
-// Cano
+// Pipe
 var pipeheight = 90;
 var pipewidth = 52;
 var pipes = new Array();
@@ -30,7 +28,7 @@ var pipes = new Array();
 // Replay
 var replayclickable = false;
 
-// Sons
+// Sounds
 var volume = 30;
 var soundJump = new buzz.sound("assets/sounds/sfx_wing.ogg");
 var soundScore = new buzz.sound("assets/sounds/sfx_point.ogg");
@@ -43,7 +41,7 @@ buzz.all().setVolume(volume);
 var loopGameloop;
 var loopPipeloop;
 
-// --------------------------------------------------- FUNÇÕES --------------------------------------------------- 
+// --------------------------------------------------- FUNCTIONS --------------------------------------------------- 
 
 $(document).ready(function() {
     if (window.location.search == "?debug")
@@ -76,43 +74,43 @@ function setCookie(cname, cvalue, exdays) {
 }
 
 function showSplash() {
-    // Estado atual do jogo
+    // Current game state
     currentstate = states.SplashScreen;
 
-    // Valores iniciais
+    // Initial values
     velocity = 0;
     position = 180;
     rotation = 0;
     score = 0;
 
-    // Resetar as posções do jogador
+    // Reset player positions 
     $("#player").css({ y: 0, x: 0 });
     updatePlayer($("#player"));
 
     soundSwoosh.stop();
     soundSwoosh.play();
 
-    // Limpar os canos
+    // Clean the pipes
     $(".pipe").remove();
     pipes = new Array();
 
-    // Começar as animações novamente
+    // Start animations again
     $(".animated").css('animation-play-state', 'running');
     $(".animated").css('-webkit-animation-play-state', 'running');
 
-    // Splash Screen aparecer
+    // Splash Screen appear
     $("#splash").transition({ opacity: 1 }, 2000, 'ease');
 }
 
 function startGame() {
-    // Estado do jogo
+    // Game status
     currentstate = states.GameScreen;
 
-    // Splash screen sumir
+    // Splash screen disappear
     $("#splash").stop();
     $("#splash").transition({ opacity: 0 }, 500, 'ease');
 
-    // Mostrar o score
+    // Show the score
     setBigScore();
 
     // Debug
@@ -120,34 +118,34 @@ function startGame() {
         $(".boundingbox").show();
     }
 
-    // Começar os loops do jogo
+    // Start the game loops
     var updaterate = 1000.0 / 60.0; // 60 fps
     loopGameloop = setInterval(gameloop, updaterate);
     loopPipeloop = setInterval(updatePipes, 1400);
 
-    // Pular para começar o jogo
+    // Jump to start the game
     playerJump();
 }
 
 function updatePlayer(player) {
-    // Rotação
+    // Rotation
     rotation = Math.min((velocity / 10) * 90, 90);
 
-    // Aplicando a rotação no CSS
+    // Applying rotation in CSS
     $(player).css({ rotate: rotation, top: position });
 }
 
 function gameloop() {
     var player = $("#player");
 
-    // Upar a posição e velocidade do player 
+    // player position and speed
     velocity += gravity;
     position += velocity;
 
-    // Aplicar os novos valores do player
+    // Apply the new player values
     updatePlayer(player);
 
-    // Criar o hack de bouding box para o player
+    // Create the bouding box hack for the player
     var box = document.getElementById('player').getBoundingClientRect();
     var origwidth = 34.0;
     var origheight = 24.0;
@@ -159,57 +157,57 @@ function gameloop() {
     var boxright = boxleft + boxwidth;
     var boxbottom = boxtop + boxheight;
 
-    // Se acertar o footer, o player morre e retorna o jogo
+    // If you hit the footer, the player dies and returns to the game
     if (box.bottom >= $("#footer-game").offset().top) {
         playerDead();
         return;
     }
 
-    // Se tentar passar pelo topo, zera a posição dele no topo
+    // If you try to go over the top, it will reset his position at the top
     var ceiling = $("#ceiling");
     if (boxtop <= (ceiling.offset().top + ceiling.height()))
         position = 0;
 
-    // Se não houver nenhum cano no jogo retorna
+    // If there is no pipe in the game it returns
     if (pipes[0] == null)
         return;
 
-    // Determina a área para os próximos canos
+    // Determines the area for the next pipes
     var nextpipe = pipes[0];
     var nextpipeupper = nextpipe.children(".pipe_upper");
 
     var pipetop = nextpipeupper.offset().top + nextpipeupper.height();
-    var pipeleft = nextpipeupper.offset().left - 2; // Por algum motivo ele começa no deslocamento dos tubos internos , e não os tubos exteriores 
+    var pipeleft = nextpipeupper.offset().left - 2; // For some reason it starts with the displacement of the inner tubes, and not the outer tubes
     var piperight = pipeleft + pipewidth;
     var pipebottom = pipetop + pipeheight;
 
-    // O que acontece se cair dentro do tubo
+    // What happens if it falls into the tube
     if (boxright > pipeleft) {
-        // Estamos dentro dos tubos, já passamos pelo tubo superior e inferior?
+        // Are we inside the tubes, have we gone through the top and bottom tubes?
         if (boxtop > pipetop && boxbottom < pipebottom) {
-            // sim, estamos dentro dos limites!
+            // yes, we are within limits!
 
         } else {
-            // não podemos pular estando dentro do cano, você morreu! return game!
+            // we can't jump in the barrel, you died! return game!
             playerDead();
             return;
         }
     }
 
 
-    // Já passamos o cano?
+    // Have we passed the pipe yet?
     if (boxleft > piperight) {
-        // se sim, remove e aparece outro
+        // if yes, remove and another one appears
         pipes.splice(0, 1);
 
-        // pontua a partir do momento que vai passando
+        // scores from the moment it passes
         playerScore();
     }
 
 }
 
 $(document).keydown(function(e) {
-    //Pulo na barra de espaco
+    // Jump on the space bar
     if (e.keyCode == 32) {
         if (currentstate == states.ScoreScreen)
             $("#replay").click();
@@ -218,7 +216,7 @@ $(document).keydown(function(e) {
     }
 });
 
-// inicia o jogo ao clicar na tela ou no espaco
+// starts the game by clicking on the screen or space
 if ("ontouchstart" in window)
     $(document).on("touchstart", screenClick);
 else
@@ -231,7 +229,7 @@ function screenClick() {
         startGame();
 }
 
-// funcao de pulo com som
+// jump function with sound
 function playerJump() {
     velocity = jump;
     soundJump.stop();

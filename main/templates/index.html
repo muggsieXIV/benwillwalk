@@ -53,12 +53,14 @@
                 <li><a href="#portfolio">Portfolio</a></li>
                 <li class="drop-down"><a href="">More</a>
                     <ul>
-                        <li><a href="/about-bww">About Ben</a></li>
+                        <li><a href="/about-bww">Resume</a></li>
                         <li class="drop-down"><a href="#">Ben's Projects</a>
                           <ul>
-                            <li><a href="https://www.mtnmadehky.com" target="_blank">Mtn Made Hky</a></li>
-                            <!-- <li><a href="/pacman/pacman">Marty-Marmot Arcade</a></li>
-                            <li><a href="/flappybird/flappybird">Flappy Bird</a></li> -->
+                            <li><a href="/portfolio-details/4">Mtn Made Hky</a></li>
+                            <li><a href="/portfolio-details/5">AMROPE Fitness</a></li>
+                            <li><a href="/portfolio-details/6">MadeSports</a></li>
+                            <li><a href="/pacman">Pacman Clone</a></li>
+                            <li><a href="/flappybird">Flappy Bird Clone</a></li>
                             <li><a href="https://www.github.com/muggsieXIV" target="_blank">GitHub</a></li>
                           </ul>
                         </li>
@@ -260,7 +262,7 @@
             <div class="col-lg-3 col-md-6 d-md-flex align-items-md-stretch">
                 <div class="count-box">
                     <i class="icofont-document-folder"></i>
-                    <span data-toggle="counter-up">29</span>
+                    <span data-toggle="counter-up">36</span>
                     <p><strong>Projects</strong> Completed since 2018</p>
                     <p><a href="https://github.com/muggsieXIV">Github</a></p>
                 </div>
@@ -269,9 +271,9 @@
             <div class="col-lg-3 col-md-6 d-md-flex align-items-md-stretch">
                 <div class="count-box">
                     <i class="icofont-simple-smile"></i>
-                    <span data-toggle="counter-up">7</span>
+                    <span data-toggle="counter-up">5 Stacks</span>
                     <p><strong>Languages</strong> diversely fitting client needs</p>
-                    <p>Python | Java | Mern | Swift | Html5 | Css | JavaScript</p>
+                    <p>Django | Flask | Java | MERN | Swift</p>
                 </div>
             </div>
 
@@ -392,8 +394,8 @@
       <div class="container">
 
         <div class="section-title" data-aos="fade-in" data-aos-delay="100">
-          <h2>Portfolio</h2>
-          <p>Below are a list of projects Ben Walker has built. Visit Ben's <a href="#" class="github"><i class="bx bxl-github"></i>GitHub</a> for a complete list of projects.</p>
+          <h2>Featured Portfolio Projects</h2>
+          <p>Below are a list of projects Ben Walker has built. Visit Ben's <a href="https://github.com/muggsieXIV" class="github" target="_blank"><i class="bx bxl-github"></i>GitHub</a> for a complete list of projects.</p>
 
         </div>
 
@@ -402,7 +404,7 @@
             <ul id="portfolio-flters">
               <li data-filter="*" class="filter-active">All</li>
               <li data-filter=".filter-python">Python</li>
-              <li data-filter=".filter-java">Java</li>
+              {% comment %} <li data-filter=".filter-java">Java</li> {% endcomment %}
               <li data-filter=".filter-mern">Mern</li>
               <li data-filter=".filter-swift">Swift</li>
               <li data-filter=".filter-sqspc">SquareSpace</li>
@@ -416,8 +418,8 @@
             <div class="portfolio-wrap">
               <img src="{% static 'assets/img/portfolio/python.png' %}" class="img-fluid" alt="">
               <div class="portfolio-links">
-                <a href="{% static 'assets/img/portfolio/python.png' %}" data-gall="portfolioGallery" class="venobox" title="App 1"><i class="bx bx-plus"></i></a>
-                <a href="portfolio-details.html" title="More Details"><i class="bx bx-link"></i></a>
+                <a href="{% static 'assets/img/portfolio/python.png' %}" data-gall="portfolioGallery" class="venobox" title="MadeSports - Web"><i class="bx bx-plus"></i></a>
+                <a href="/portfolio-details/4" title="More Details"><i class="bx bx-link"></i></a>
               </div>
             </div>
           </div>
@@ -426,98 +428,29 @@
             <div class="portfolio-wrap">
               <img src="{% static 'assets/img/portfolio/SSone.png' %}" class="img-fluid" alt="">
               <div class="portfolio-links">
-                <a href="{% static 'assets/img/portfolio/SSone.png' %}" data-gall="portfolioGallery" class="venobox" title="Web 3"><i class="bx bx-plus"></i></a>
-                <a href="portfolio-details.html" title="More Details"><i class="bx bx-link"></i></a>
+                <a href="{% static 'assets/img/portfolio/SSone.png' %}" target="_blank" data-gall="portfolioGallery" class="venobox" title="AMROPE Fitness"><i class="bx bx-plus"></i></a>
+                <a href="https://github.com/muggsieXIV" target="_blank" title="More Details"><i class="bx bx-link"></i></a>
               </div>
             </div>
           </div>
 
-          <div class="col-lg-4 col-md-6 portfolio-item filter-sqspc">
+          <div class="col-lg-4 col-md-6 portfolio-item filter-python">
             <div class="portfolio-wrap">
               <img src="{% static 'assets/img/portfolio/SStwo.png' %}" class="img-fluid" alt="">
               <div class="portfolio-links">
-                <a href="{% static 'assets/img/portfolio/SStwo.png' %}" data-gall="portfolioGallery" class="venobox" title="App 2"><i class="bx bx-plus"></i></a>
-                <a href="portfolio-details.html" title="More Details"><i class="bx bx-link"></i></a>
+                <a href="{% static 'assets/img/portfolio/SStwo.png' %}" target="_blank" data-gall="portfolioGallery" class="venobox" title="MadeSports Web"><i class="bx bx-plus"></i></a>
+                <a href="/portfolio-details/4" title="More Details"><i class="bx bx-link"></i></a>
               </div>
             </div>
           </div>
 
-          <div class="col-lg-4 col-md-6 portfolio-item filter-python">
-            <div class="portfolio-wrap">
-              <img src="{% static 'assets/img/portfolio/css.png' %}" class="img-fluid" alt="">
-              <div class="portfolio-links">
-                <a href="{% static 'assets/img/portfolio/css.png' %}" data-gall="portfolioGallery" class="venobox" title="Card 2"><i class="bx bx-plus"></i></a>
-                <a href="portfolio-details.html" title="More Details"><i class="bx bx-link"></i></a>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-lg-4 col-md-6 portfolio-item filter-mern">
-            <div class="portfolio-wrap">
-              <img src="{% static 'assets/img/portfolio/cssTwo.png' %}" class="img-fluid" alt="">
-              <div class="portfolio-links">
-                <a href="{% static 'assets/img/portfolio/cssTwo.png' %}" data-gall="portfolioGallery" class="venobox" title="Web 2"><i class="bx bx-plus"></i></a>
-                <a href="portfolio-details.html" title="More Details"><i class="bx bx-link"></i></a>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-lg-4 col-md-6 portfolio-item filter-mern">
-            <div class="portfolio-wrap">
-              <img src="{% static 'assets/img/portfolio/cssFour.png' %}" class="img-fluid" alt="">
-              <div class="portfolio-links">
-                <a href="{% static 'assets/img/portfolio/cssFour.png' %}" data-gall="portfolioGallery" class="venobox" title="App 3"><i class="bx bx-plus"></i></a>
-                <a href="portfolio-details.html" title="More Details"><i class="bx bx-link"></i></a>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-lg-4 col-md-6 portfolio-item filter-java">
-            <div class="portfolio-wrap">
-              <img src="{% static 'assets/img/portfolio/cssThree.png' %}" class="img-fluid" alt="">
-              <div class="portfolio-links">
-                <a href="{% static 'assets/img/portfolio/cssThree.png' %}" data-gall="portfolioGallery" class="venobox" title="Card 1"><i class="bx bx-plus"></i></a>
-                <a href="portfolio-details.html" title="More Details"><i class="bx bx-link"></i></a>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-lg-4 col-md-6 portfolio-item filter-python">
-            <div class="portfolio-wrap">
-              <img src="{% static 'assets/img/portfolio/game.png' %}" class="img-fluid" alt="">
-              <div class="portfolio-links">
-                <a href="{% static 'assets/img/portfolio/game.png' %}" data-gall="portfolioGallery" class="venobox" title="Card 3"><i class="bx bx-plus"></i></a>
-                <a href="portfolio-details.html" title="More Details"><i class="bx bx-link"></i></a>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-lg-4 col-md-6 portfolio-item filter-java">
-            <div class="portfolio-wrap">
-              <img src="{% static 'assets/img/portfolio/cssFive.png' %}" class="img-fluid" alt="">
-              <div class="portfolio-links">
-                <a href="{% static 'assets/img/portfolio/cssFive.png' %}" data-gall="portfolioGallery" class="venobox" title="Web 3"><i class="bx bx-plus"></i></a>
-                <a href="portfolio-details.html" title="More Details"><i class="bx bx-link"></i></a>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-lg-4 col-md-6 portfolio-item filter-mern">
-            <div class="portfolio-wrap">
-              <img src="{% static 'assets/img/portfolio/mern.png' %}" class="img-fluid" alt="">
-              <div class="portfolio-links">
-                <a href="{% static 'assets/img/portfolio/mern.png' %}" data-gall="portfolioGallery" class="venobox" title="Web 3"><i class="bx bx-plus"></i></a>
-                <a href="portfolio-details.html" title="More Details"><i class="bx bx-link"></i></a>
-              </div>
-            </div>
-          </div>
 
           <div class="col-lg-4 col-md-6 portfolio-item filter-swift">
             <div class="portfolio-wrap">
               <img src="{% static 'assets/img/portfolio/swiftOne.png' %}" class="img-fluid" alt="">
               <div class="portfolio-links">
-                <a href="{% static 'assets/img/portfolio/swiftOne.png' %}" data-gall="portfolioGallery" class="venobox" title="Web 3"><i class="bx bx-plus"></i></a>
-                <a href="portfolio-details.html" title="More Details"><i class="bx bx-link"></i></a>
+                <a href="{% static 'assets/img/portfolio/swiftOne.png' %}" data-gall="portfolioGallery" class="venobox" title="MadeSports - Mobile"><i class="bx bx-plus"></i></a>
+                <a href="/portfolio-details/6" title="More Details"><i class="bx bx-link"></i></a>
               </div>
             </div>
           </div>
@@ -526,8 +459,8 @@
             <div class="portfolio-wrap">
               <img src="{% static 'assets/img/portfolio/swiftTwo.png' %}" class="img-fluid" alt="">
               <div class="portfolio-links">
-                <a href="{% static 'assets/img/portfolio/swiftTwo.png' %}" data-gall="portfolioGallery" class="venobox" title="Web 3"><i class="bx bx-plus"></i></a>
-                <a href="portfolio-details.html" title="More Details"><i class="bx bx-link"></i></a>
+                <a href="{% static 'assets/img/portfolio/swiftTwo.png' %}" data-gall="portfolioGallery" class="venobox" title="SwiftUI Functionality"><i class="bx bx-plus"></i></a>
+                <a href="https://github.com/muggsieXIV/swiftUIBaiscs" title="More Details"><i class="bx bx-link"></i></a>
               </div>
             </div>
           </div>
@@ -540,7 +473,7 @@
 
 
     <!-- ======= MyGames Section ======= -->
-    <!-- <section id="team" class="team">
+    <section id="team" class="team">
       <div class="container">
 
         <div class="section-title" data-aos="fade-in" data-aos-delay="100">
@@ -552,12 +485,12 @@
 
           <div class="col-lg-6 col-md-6">
             <div class="member" data-aos="fade-up">
-              <div class="pic"><img src="{% static 'assets/img/team/martyman.png' %}" class="img-fluid" alt=""></div>
+              <div class="pic"><img src="{% static 'assets/img/team/pacman.jpg' %}" class="img-fluid" alt=""></div>
               <div class="member-info">
                 <h4>Marty-Marmot Arcade</h4>
                 <span>Help Marty collect all of his favorite candy, but watch out for refs!</span>
                 <div class="social">
-                  <a class="btn btn-warning" href="/pacman/pacman">Play Game</a>
+                  <a class="btn btn-warning" href="/pacman">Play Game</a>
                 </div>
               </div>
             </div>
@@ -565,12 +498,12 @@
 
           <div class="col-lg-6 col-md-6">
             <div class="member" data-aos="fade-up" data-aos-delay="150">
-              <div class="pic"><img src="{% static 'assets/img/team/flappybird.png' %}" class="img-fluid" alt=""></div>
+              <div class="pic"><img src="{% static 'assets/img/team/flappbird.jpg' %}" class="img-fluid" alt=""></div>
               <div class="member-info">
                 <h4>Flappy Bird</h4>
                 <span>This is a replica of the popular Flappy Bird game</span>
                 <div class="social">
-                  <a class="btn btn-warning" href="/flappybird/flappybird">Play Game</a>
+                  <a class="btn btn-warning" href="/flappybird">Play Game</a>
                 </div>
               </div>
             </div>
@@ -579,7 +512,9 @@
         </div>
 
       </div>
-    </section> End MyGames Section -->
+    </section> 
+
+    <!-- ======= END GAME SECTION =====-->
 
     <!-- ======= Contact Section ======= -->
     <section id="contact" class="contact section-bg">
@@ -696,13 +631,13 @@
         </div>
 
                 <div class="col-lg-2 col-md-6 footer-links" data-aos="fade-up" data-aos-delay="250">
-                    <h4>Our Services</h4>
+                    <h4>Projects</h4>
                     <ul>
-                        <li><i class="bx bx-chevron-right"></i> <a href="#Services---sorryPageIsBeingEdited">Web Development</a></li>
-                        <li><i class="bx bx-chevron-right"></i> <a href="#graphic-design---sorryPageIsBeingEdited">Graphic Design</a></li>
-                        <li><i class="bx bx-chevron-right"></i> <a href="#photography---sorryPageIsBeingEdited">Photography</a></li>
-                        <li><i class="bx bx-chevron-right"></i> <a href="#articles---sorryPageIsBeingEdited">Content Writing</a></li>
-
+                        <li><i class="bx bx-chevron-right"></i> <a href="/portfolio-details/4">Mtn Made Hky</a></li>
+                        <li><i class="bx bx-chevron-right"></i> <a href="/portfolio-details/5">AMROPE FITNESS</a></li>
+                        <li><i class="bx bx-chevron-right"></i> <a href="/portfolio-details/6">MadeSports</a></li>
+                        <li><i class="bx bx-chevron-right"></i> <a href="/pacman">PacMan Clone</a></li>
+                        <li><i class="bx bx-chevron-right"></i> <a href="/flappybird">FlappyBird Clone</a></li>
                     </ul>
                 </div>
 

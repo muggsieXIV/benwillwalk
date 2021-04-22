@@ -47,8 +47,8 @@
         <img src="{% static 'assets/img/benWalker.jpg' %}" alt="" class="img-fluid rounded-circle">
         <h1 class="text-light"><a href="/">BenWillWalk</a></h1>
         <div class="social-links mt-3 text-center">
-          <a href="https://github.com/muggsieXIV" class="github"><i class="bx bxl-github"></i></a>
-          <a href="https://www.linkedin.com/in/benwillwalk/" class="linkedin"><i class="bx bxl-linkedin"></i></a>
+          <a href="https://github.com/muggsieXIV" target="_blank" class="github"><i class="bx bxl-github"></i></a>
+          <a href="https://www.linkedin.com/in/benwillwalk/" target="_blank" class="linkedin"><i class="bx bxl-linkedin"></i></a>
         </div>
       </div>
       <nav class="about-nav-menu">
@@ -167,7 +167,7 @@
       </div>
     </section><!-- End Facts Section -->
 
-    <!-- ======= Skills Section ======= -->
+    {% comment %} <!-- ======= Skills Section ======= -->
     <section id="skills" class="skills section-bg">
       <div class="container">
 
@@ -290,7 +290,7 @@
           </div>
         </div>
       </div>
-    </section><!-- End Skills Section -->
+    </section><!-- End Skills Section --> {% endcomment %}
 
     <!-- ======= Resume Section ======= -->
     <section id="resume" class="resume">
@@ -310,8 +310,8 @@
                 <li>Pine, Colorado, USA</li>
                 <li>(952) 356-4014</li>
                 <li>benwillwalk@gmail.com</li>
-                <li><a href="https://www.linkedin.com/in/benwillwalk/">Linkedin</a></li>
-                <li><a href="https://github.com/muggsieXIV">Github</a></li>
+                <li><a href="https://www.linkedin.com/in/benwillwalk/" target="_blank">Linkedin</a></li>
+                <li><a href="https://github.com/muggsieXIV" target="_blank">Github</a></li>
               </ul>
             </div>
 
@@ -847,7 +847,7 @@
               <div class="form-row">
                 <div class="form-group col-md-6">
                   <label for="name">Your Name</label>
-                  <input type="text" name="name" class="form-control" id="name" data-rule="minlen:4" data-msg="Please enter at least 4 chars" />
+                  <input type="text" name="name" class="form-control" id="name" data-rule="minlen:4" data-msg="Please enter at least 4 characters" />
                   <div class="validate"></div>
                 </div>
                 <div class="form-group col-md-6">
@@ -858,12 +858,12 @@
               </div>
               <div class="form-group">
                 <label for="name">Subject</label>
-                <input type="text" class="form-control" name="subject" id="subject" data-rule="minlen:4" data-msg="Please enter at least 8 chars of subject" />
+                <input type="text" class="form-control" name="subject" id="subject" data-rule="minlen:4" data-msg="Please enter at least 8 characters" />
                 <div class="validate"></div>
               </div>
               <div class="form-group">
                 <label for="name">Comment</label>
-                <textarea class="form-control" name="comment" rows="10" data-rule="required" data-msg="Please be dscriptive"></textarea>
+                <textarea class="form-control" name="comment" rows="10" data-rule="required" data-msg="Please be descriptive"></textarea>
                 <div class="validate"></div>
               </div>
               <div class="mb-3">

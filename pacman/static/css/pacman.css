@@ -1,11 +1,11 @@
 @font-face {
   font-family: 'pacmanFont';
-  src: url('../templates/joystix monospace.ttf');
+  src: url('joystix monospace.ttf');
 }
 
 @font-face {
   font-family: 'pacmanGameTitle';
-  src: url('../templates/crackman.ttf');
+  src: url('crackman.ttf');
 }
 
 html,
@@ -32,7 +32,7 @@ body {
   width: 100vw;
   height: 100vh;
   background-color: #FFF;
-  background-image: url("../img/giphy(3).gif");
+  background-image: url("giphy (3).gif");
   background-repeat: no-repeat;
   background-position: center;
 }
@@ -335,7 +335,7 @@ xpopup
 .pacmanLeft360, .pacmanRight270, .pacmanRight315, .pacmanRight360, .pacmanUp270, 
 .pacmanUp315, .pacmanUp360, .pear, .strawberry, .cherry, 
 .flower
-{ width: 18px; height: 18px; max-width: 100%; background-size: 100%; background-image: url('../img/pacman-sprite.png'); color: #7fffd4;/*aquamarine*/ }
+{ width: 18px; height: 18px; max-width: 100%; background-size: 100%; background-image: url('pacman-sprite.png'); color: #7fffd4;/*aquamarine*/ }
 
 .text-r, .text-e, .text-a, .text-d, .text-y, .text-exclamationMark
 { width: 18px; height: 18px; color: #ffff00; }
