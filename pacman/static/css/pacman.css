@@ -1,6 +1,6 @@
 @font-face {
   font-family: 'pacmanFont';
-  src: url('joystix monospace.ttf');
+  src: url('joystix-monospace.ttf');
 }
 
 @font-face {
@@ -32,7 +32,7 @@ body {
   width: 100vw;
   height: 100vh;
   background-color: #FFF;
-  background-image: url("giphy (3).gif");
+  background-image: url("giphy(3).gif");
   background-repeat: no-repeat;
   background-position: center;
 }
