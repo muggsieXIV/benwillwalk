@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title></title>
+    <title>BenWillWalk - Pacman</title>
     {% load static %}
     <link rel="stylesheet" type="text/css" href="{% static 'css/pacman.css' %}">
     <script src="{% static 'js/jquery-3.3.1.min.js' %}"></script>
@@ -10,7 +10,7 @@
 <body>
 
 <div id="loading">
-	<h1>PACMAN</h1>
+	<h1>PACMAN Clone</h1>
 </div>
 
 <div  class="page">
@@ -20,16 +20,17 @@
 	    		<div class="cd-popup-container">
 	    			<p id="gameOver">Game Over</p>
 	    			<ul class="cd-buttons">
-	    				<li><a id="cd-popup-yesToPlayAgain" href="#0">Yes</a></li>
-	    				<li><a id="cd-popup-noToPlayAgain" href="#0">No</a></li>
+	    				<li><a id="cd-popup-yesToPlayAgain" href="/pacman">Yes</a></li>
+	    				<li><a id="cd-popup-noToPlayAgain" href="/">No</a></li>
 	    			</ul>
-	    			<a href="#0" class="cd-popup-close img-replace">Close</a>
+	    			<a href="/" class="cd-popup-close img-replace">Close</a>
 	    		</div>
 	    	</div>
 	        <div id="scoreLivesDisplay">
 	            <span id="currentScoreDisplay">
 	                SCORE <span id="updateScore">0</span>
 	            </span>
+                <a href="/" class="btn">Return Home</a>
 	            <span id="livesLeft">
 	                <span id="life1" class="pacmanLeft315"></span>
 	                <span id="life2" class="pacmanLeft315"></span>
@@ -38,7 +39,7 @@
 	            </span>
 	        </div>
 	        <div class="ijkl"></div>
-	        <a class="playAgain">NEW GAME</a>
+	        <a href="/pacman" class="playAgain">NEW GAME</a>
 	    </div>
 	</div>
 </div>
