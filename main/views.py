@@ -4,10 +4,12 @@ from .models import Client, Subscriber, Project
 from datetime import datetime
 
 
-
 # Create your views here.
 def index(request):
-    return render(request, 'index.html')
+    context = {
+        'all_projects': Project.objects.all(),
+    }
+    return render(request, 'index.html', context)
 
 
 def portfolioDetails(request, project_id):

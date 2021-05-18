@@ -14,7 +14,7 @@ SECRET_KEY = 'ap-^a$vfnck2u(4cnlm7o_nie4lx5k&lx!$38ia6b)lq6*rsp0'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['3.19.138.142', 'benwillwalk.com', 'www.benwillwalk.com']
+ALLOWED_HOSTS = ['3.19.138.142', 'benwillwalk.com', 'www.benwillwalk.com',]
 
 
 # Application definition

@@ -5,9 +5,9 @@
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-    <title>BWWdev - Home</title>
+    <title>BWW Dev - Home</title>
     {% load static %}
-    <meta content="" name="descriptison">
+    <meta content="" name="description">
     <meta content="" name="keywords">
 
     <!-- Favicons -->
@@ -28,12 +28,6 @@
     <!-- Template Main CSS File -->
     <link href="{% static 'assets/css/style.css' %}" rel="stylesheet">
 
-    <!-- =======================================================
-    * Template Name: Squadfree - v2.2.0
-    * Template URL: https://bootstrapmade.com/squadfree-free-bootstrap-template-creative/
-    * Author: BootstrapMade.com
-    * License: https://bootstrapmade.com/license/
-    ======================================================== -->
 </head>
 <body>
     <!-- ======= Header ======= -->
@@ -42,7 +36,7 @@
 
         <div class="logo mr-auto">
             <h1 class="text-light"><a href="/"><span>BWW Development</span></a></h1>
-            <!-- Uncomment below if you prefer to use an image logo -->
+            <!-- Uncomment below ifd prefer to use an image logo -->
             <!-- <a href="index.html"><img src="assets/img/logo.png" alt="" class="img-fluid"></a>-->
         </div>
         <nav class="nav-menu d-none d-lg-block">
@@ -56,9 +50,10 @@
                         <li><a href="/about-bww">Resume</a></li>
                         <li class="drop-down"><a href="#">Ben's Projects</a>
                           <ul>
-                            <li><a href="/portfolio-details/4">Mtn Made Hky</a></li>
-                            <li><a href="/portfolio-details/5">AMROPE Fitness</a></li>
-                            <li><a href="/portfolio-details/6">MadeSports</a></li>
+                              {% for project in all_projects %}
+                              <li> <a href="/portfolio-details/{{project.id}}">{{project.title}}</a> </li>
+                              {% endfor %}
+
                             <li><a href="/pacman">Pacman Clone</a></li>
                             <li><a href="/flappybird">Flappy Bird Clone</a></li>
                             <li><a href="https://www.github.com/muggsieXIV" target="_blank">GitHub</a></li>
@@ -66,21 +61,21 @@
                         </li>
                         <li class="drop-down"><a href="#">Ben's Articles</a>
                           <ul>
-                            <li><a href="https://www.dubnetwork.ca/alumni-feature/40-60-players/" target="_blank">40/60 Players</a></li>
-                            <li><a href="https://www.dubnetwork.ca/alumni-feature/hockey-teaches/" target="_blank">Hockey Teaches</a></li>
-                            <li><a href="https://www.dubnetwork.ca/alumni-feature/why-the-western-hockey-league/"target="_blank">Why the WHL</a></li>
+                            <li> <a href="https://www.dubnetwork.ca/alumni-feature/40-60-players/" target="_blank">40/60 Players</a> </li>
+                            <li> <a href="https://www.dubnetwork.ca/alumni-feature/hockey-teaches/" target="_blank">Hockey Teaches</a> </li>
+                            <li> <a href="https://www.dubnetwork.ca/alumni-feature/why-the-western-hockey-league/" target="_blank">Why the WHL </a> </li>
                           </ul>
                         </li>
                         <li class="drop-down"><a href="#">Interviews</a>
                           <ul>
-                            <li><a href="https://www.youtube.com/watch?v=BrggCdLtGA4&t=12s" target="_blank">CTV Vancouver Island MVP Feature</a></li>
-                            <li><a href="https://www.youtube.com/watch?v=_f6Bwe_4Eso" target="_blank">ShawTV Feature</a></li>
-                            <li><a href="https://www.youtube.com/watch?v=oK-5YAeUMn8"target="_blank">Post Game Interview</a></li>
+                            <li> <a href="https://www.youtube.com/watch?v=BrggCdLtGA4&t=12s" target="_blank">CTV Vancouver Island MVP Feature</a> </li>
+                            <li> <a href="https://www.youtube.com/watch?v=_f6Bwe_4Eso" target="_blank">ShawTV Feature</a> </li>
+                            <li> <a href="https://www.youtube.com/watch?v=oK-5YAeUMn8" target="_blank">Post Game Interview</a> </li>
                           </ul>
                         </li>
                     </ul>
                 </li>
-                <li><a href="#contact">Contact</a></li> 
+                <li> <a href="#contact">Contact</a> </li>
             </ul>
         </nav><!-- .nav-menu -->
     </div>
@@ -396,24 +391,38 @@
         <div class="section-title" data-aos="fade-in" data-aos-delay="100">
           <h2>Featured Portfolio Projects</h2>
           <p>Below are a list of projects Ben Walker has built. Visit Ben's <a href="https://github.com/muggsieXIV" class="github" target="_blank"><i class="bx bxl-github"></i>GitHub</a> for a complete list of projects.</p>
-
         </div>
 
         <div class="row" data-aos="fade-in">
           <div class="col-lg-12 d-flex justify-content-center">
             <ul id="portfolio-flters">
               <li data-filter="*" class="filter-active">All</li>
-              <li data-filter=".filter-python">Python</li>
-              {% comment %} <li data-filter=".filter-java">Java</li> {% endcomment %}
-              <li data-filter=".filter-mern">Mern</li>
-              <li data-filter=".filter-swift">Swift</li>
-              <li data-filter=".filter-sqspc">SquareSpace</li>
+              <li data-filter=".filter-Python">Python</li>
+                <li data-filter=".filter-java">Java</li>
+              <li data-filter=".filter-MERN">MERN</li>
+              <li data-filter=".filter-Swift">Swift</li>
+              <li data-filter=".filter-SquareSpace">SquareSpace</li>
+              <li data-filter=".filter-WordPress">WordPress</li>
             </ul>
           </div>
         </div>
 
         <div class="row portfolio-container" data-aos="fade-up">
 
+
+        {% for project in all_projects %}
+          <div class="col-lg-4 col-md-4 portfolio-item filter-{{project.category}}">
+            <div class="portfolio-wrap">
+                <img src="{{project.image_one.url}}" class="img-fluid" alt="{{project.title}}">
+                <div class="portfolio-links">
+                  <a href="{{project.image_one.url}}" data-gall="portfolioGallery" class="venobox" title={{project.title}}><i class="bx bx-plus"></i></a>
+                  <a href="/portfolio-details/{{project.id}}" title="More Details"><i class="bx bx-link"></i></a>
+                </div>
+              </div>
+          </div>
+        {% endfor %}
+
+        <!--
           <div class="col-lg-4 col-md-6 portfolio-item filter-python">
             <div class="portfolio-wrap">
               <img src="{% static 'assets/img/portfolio/python.png' %}" class="img-fluid" alt="">
@@ -464,7 +473,7 @@
               </div>
             </div>
           </div>
-
+        -->
         </div>
 
       </div>
@@ -633,9 +642,9 @@
                 <div class="col-lg-2 col-md-6 footer-links" data-aos="fade-up" data-aos-delay="250">
                     <h4>Projects</h4>
                     <ul>
-                        <li><i class="bx bx-chevron-right"></i> <a href="/portfolio-details/4">Mtn Made Hky</a></li>
-                        <li><i class="bx bx-chevron-right"></i> <a href="/portfolio-details/5">AMROPE FITNESS</a></li>
-                        <li><i class="bx bx-chevron-right"></i> <a href="/portfolio-details/6">MadeSports</a></li>
+                        {% for project in all_projects %}
+                        <li><i class="bx bx-chevron-right"></i> <a href="/portfolio-details/{{project.id}}">{{project.title}}</a></li>
+                        {% endfor %}
                         <li><i class="bx bx-chevron-right"></i> <a href="/pacman">PacMan Clone</a></li>
                         <li><i class="bx bx-chevron-right"></i> <a href="/flappybird">FlappyBird Clone</a></li>
                     </ul>
