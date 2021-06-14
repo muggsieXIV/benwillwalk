@@ -65,3 +65,35 @@ class Project(models.Model):
         ordering = ("title", "description", "image_one", "image_two", "image_three", "category", "client", "project_date", "project_url", "created_at")
     def __str__(self):
         return f"{self.title}, {self.description}, {self.image_one}, {self.image_two}, {self.image_three}, {self.category}, {self.client}, {self.project_date}, {self.project_url}"
+
+
+# class Language(models.Model):
+#     name = models.CharField(max_length=100)
+#     link = models.CharField(max_length=255)
+#     image = models.ImageField(upload_to='static/assets/languages')
+#     description = models.TextField()
+#     category = models.CharField(max_length=255)
+#
+#
+# class Frameworks(models.Model):
+#     name = models.CharField(max_length=200)
+#     link = models.CharField(max_length=200)
+#     image = models.ImageField(upload_to='static/assets/frameworks')
+#     language = models.ForeignKey(Language, related_name="framework", on_delete=models.CASCADE())
+#     category = models.CharField(max_length=200)
+#
+#
+# class Databases(models.Model):
+#     name = models.CharField(max_length=200)
+#     link = models.CharField(max_length=255)
+#     image = models.ImageField(upload_to='static/assets/databases')
+#     description = models.TextField()
+#     category = models.CharField(max_length=255)
+#
+#
+# class Stats(models.Model):
+#     completed_projects = models.IntegerField()
+#     languages = models.ManyToManyField(Language, related_name="stats")
+#     frameworks = models.ManyToManyField(Frameworks, related_name="stats")
+#     databases = models.ManyToManyField(Databases, related_name="stats")
+

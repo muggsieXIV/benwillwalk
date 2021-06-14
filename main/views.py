@@ -6,8 +6,11 @@ from datetime import datetime
 
 # Create your views here.
 def index(request):
+    total_projects = len(Project.objects.all())
+
     context = {
         'all_projects': Project.objects.all(),
+        'total_projects': total_projects
     }
     return render(request, 'index.html', context)
 

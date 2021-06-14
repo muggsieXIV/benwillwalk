@@ -257,8 +257,8 @@
             <div class="col-lg-3 col-md-6 d-md-flex align-items-md-stretch">
                 <div class="count-box">
                     <i class="icofont-document-folder"></i>
-                    <span data-toggle="counter-up">36</span>
-                    <p><strong>Projects</strong> Completed since 2018</p>
+                    <span data-toggle="counter-up">{{ total_projects }}</span>
+                    <p><strong>Projects Deployed</strong><br> Since 2018</p>
                     <p><a href="https://github.com/muggsieXIV">Github</a></p>
                 </div>
             </div>
@@ -266,17 +266,16 @@
             <div class="col-lg-3 col-md-6 d-md-flex align-items-md-stretch">
                 <div class="count-box">
                     <i class="icofont-simple-smile"></i>
-                    <span data-toggle="counter-up">5 Stacks</span>
-                    <p><strong>Languages</strong> diversely fitting client needs</p>
-                    <p>Django | Flask | Java | MERN | Swift</p>
+                    <span data-toggle="counter-up">4</span>
+                    <p><strong>Languages</strong><br> Python | Java | JavaScript | Swift </p>
                 </div>
             </div>
 
             <div class="col-lg-3 col-md-6 d-md-flex align-items-md-stretch">
                 <div class="count-box">
                     <i class="icofont-live-support"></i>
-                    <span data-toggle="counter-up">8</span>
-                    <p><strong>Frameworks/Libraries</strong> Flask | Django | Django Rest Framework | Express | React | Bootstrap | JQuery | SwiftUI</p>
+                    <span data-toggle="counter-up">10</span>
+                    <p><strong>Frameworks/Libraries</strong> Flask | Django | Django Rest Framework | Express.js | React.js | Node.js | Bootstrap | JQuery | SwiftUI | Spring</p>
                 </div>
             </div>
 
@@ -284,7 +283,7 @@
                 <div class="count-box">
                     <i class="icofont-users-alt-5"></i>
                     <span data-toggle="counter-up">4</span>
-                    <p><strong>Databases</strong> PostgreSQL | MySQL | SQLite | MongoDB | AWS </p>
+                    <p><strong>Databases</strong> PostgreSQL | MySQL | SQLite | MongoDB </p>
                 </div>
             </div>
 
@@ -396,13 +395,14 @@
         <div class="row" data-aos="fade-in">
           <div class="col-lg-12 d-flex justify-content-center">
             <ul id="portfolio-flters">
-              <li data-filter="*" class="filter-active">All</li>
-              <li data-filter=".filter-Python">Python</li>
+                <li data-filter="*" class="filter-active">All</li>
+                <li data-filter=".filter-Python">Python</li>
                 <li data-filter=".filter-java">Java</li>
-              <li data-filter=".filter-MERN">MERN</li>
-              <li data-filter=".filter-Swift">Swift</li>
-              <li data-filter=".filter-SquareSpace">SquareSpace</li>
-              <li data-filter=".filter-WordPress">WordPress</li>
+                <li data-filter=".filter-MERN">MERN</li>
+                <li data-filter=".filter-Swift">Swift</li>
+                <li data-filter=".filter-SquareSpace">SquareSpace</li>
+                <li data-filter=".filter-WordPress">WordPress</li>
+                <li data-filter=".filter-BlockChain">BlockChain</li>
             </ul>
           </div>
         </div>
@@ -487,7 +487,7 @@
 
         <div class="section-title" data-aos="fade-in" data-aos-delay="100">
           <h2>Games</h2>
-          <p>Everyone loves games. Check out Ben Walker's replicas of Pacman and Flappy Bird.</p>
+          <p>Are you a gamer? Check out our replicas of Pacman and Flappy Bird.</p>
         </div>
 
         <div class="row">
@@ -643,7 +643,7 @@
                     <h4>Projects</h4>
                     <ul>
                         {% for project in all_projects %}
-                        <li><i class="bx bx-chevron-right"></i> <a href="/portfolio-details/{{project.id}}">{{project.title}}</a></li>
+                            <li><i class="bx bx-chevron-right"></i> <a href="/portfolio-details/{{project.id}}">{{project.title}}</a></li>
                         {% endfor %}
                         <li><i class="bx bx-chevron-right"></i> <a href="/pacman">PacMan Clone</a></li>
                         <li><i class="bx bx-chevron-right"></i> <a href="/flappybird">FlappyBird Clone</a></li>
