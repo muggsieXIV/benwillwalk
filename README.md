@@ -1,8 +1,11 @@
 # benwillwalk
 
 
-Personal Resume site: 
+# Personal Resume site:
+from benwillwalk.com/about-bww
 ![til](./gifs/resume.gif)
 
-Freelancing services: 
-![til](./gifs/dashboard.git)
+
+# Freelancing services: 
+from benwillwalk.com
+![til](./gifs/dashboard.gif)
